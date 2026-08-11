@@ -290,9 +290,53 @@ canvas{max-width:100%;}
   font-size:12.5px;box-shadow:0 8px 24px rgba(0,0,0,.2);z-index:80;opacity:0;transform:translateY(8px);transition:all .2s;pointer-events:none;
 }
 .toast.show{opacity:1;transform:translateY(0);}
+
+/* ---------- Мобильная верхняя панель и выезжающее меню ---------- */
+.mobile-topbar{
+  display:none;
+  align-items:center;gap:12px;
+  position:fixed;top:0;left:0;right:0;height:52px;
+  background:var(--sidebar);color:#fff;z-index:96;
+  padding:0 14px;box-shadow:0 1px 2px rgba(0,0,0,.15);
+}
+.mobile-topbar .hamburger{background:none;border:none;color:#fff;font-size:21px;padding:6px;line-height:1;}
+.mobile-topbar .mt-title{font-family:'IBM Plex Serif',serif;font-weight:600;font-size:14px;}
+.sidebar-close{display:none;margin-left:auto;background:none;border:none;color:var(--sidebar-text);font-size:17px;padding:4px;flex-shrink:0;}
+.sidebar-backdrop{display:none;position:fixed;inset:0;background:rgba(15,20,33,.45);z-index:90;}
+.sidebar-backdrop.show{display:block;}
+
+@media (max-width: 860px){
+  body{flex-direction:column;}
+  .mobile-topbar{display:flex;}
+  .sidebar{
+    position:fixed;top:0;left:0;height:100vh;z-index:95;width:250px;
+    transform:translateX(-100%);transition:transform .22s ease;
+    box-shadow:0 0 30px rgba(0,0,0,.3);
+  }
+  .sidebar.open{transform:translateX(0);}
+  .sidebar-close{display:inline-block;}
+  .main{width:100%;padding-top:52px;}
+  .topbar{padding:16px 16px 8px 16px;flex-wrap:wrap;row-gap:8px;}
+  .topbar h1{font-size:19px;}
+  .content{padding:14px 14px 40px 14px;}
+  .card{overflow-x:auto;}
+  .cols-2,.cols-3,.cols-4{grid-template-columns:1fr;}
+  .habit-row{flex-wrap:wrap;}
+  .habit-controls{width:100%;margin-top:10px;justify-content:flex-start;}
+  .pct-wrap{min-width:0;width:100%;}
+  .modal{max-width:94vw;}
+  .modal-body{padding:16px;}
+  .gantt-row{grid-template-columns:140px 1fr;}
+}
 </style>
 </head>
 <body>
+
+<div class="mobile-topbar">
+  <button class="hamburger" id="btnHamburger" aria-label="Меню">☰</button>
+  <span class="mt-title">Habit Ops</span>
+</div>
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
 <aside class="sidebar">
   <div class="brand">
@@ -301,6 +345,7 @@ canvas{max-width:100%;}
       <div class="brand-title">Панель эффективности</div>
       <div class="brand-sub">Habit Ops</div>
     </div>
+    <button class="sidebar-close" id="btnSidebarClose" aria-label="Закрыть меню">✕</button>
   </div>
 
   <div class="nav-group-label">Учёт</div>
@@ -493,8 +538,21 @@ let weekCursor = new Date();
 let monthCursor = new Date();
 
 document.querySelectorAll('.nav-item').forEach(btn=>{
-  btn.addEventListener('click', ()=>{ currentView = btn.dataset.view; render(); });
+  btn.addEventListener('click', ()=>{ currentView = btn.dataset.view; render(); closeMobileSidebar(); });
 });
+
+/* Мобильное выезжающее меню */
+function openMobileSidebar(){
+  document.querySelector('.sidebar').classList.add('open');
+  document.getElementById('sidebarBackdrop').classList.add('show');
+}
+function closeMobileSidebar(){
+  document.querySelector('.sidebar').classList.remove('open');
+  document.getElementById('sidebarBackdrop').classList.remove('show');
+}
+document.getElementById('btnHamburger').addEventListener('click', openMobileSidebar);
+document.getElementById('btnSidebarClose').addEventListener('click', closeMobileSidebar);
+document.getElementById('sidebarBackdrop').addEventListener('click', closeMobileSidebar);
 
 function setActiveNav(){
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active', b.dataset.view===currentView));
