@@ -1835,10 +1835,13 @@ async function initSync(){
     toast('Загружены более свежие данные из облака');
     render();
     setSyncStatus('Синхронизировано · '+new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}));
-  } else if(localTs > 0){
-    pushToCloud();
   } else {
-    setSyncStatus('Готово к синхронизации');
+    // Локальные данные не старше удалённых (или удалённых ещё нет вовсе) —
+    // отправляем локальную версию в облако. Работает и при самой первой
+    // настройке синхронизации, когда у локальных данных ещё нет метки времени.
+    if(!state.updatedAt) state.updatedAt = Date.now();
+    try{ localStorage.setItem('habitops_state_v1', JSON.stringify(state)); }catch(e){}
+    pushToCloud();
   }
 }
 
