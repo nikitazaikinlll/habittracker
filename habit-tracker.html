@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Трекер привычек — Панель эффективности</title>
+<!-- PWA: возможность установить как приложение на телефон -->
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0F1D36">
 <meta name="mobile-web-app-capable" content="yes">
@@ -227,6 +228,11 @@ tr:last-child td{border-bottom:none;}
 .day-check.done{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
 .day-check.future{opacity:.35;}
 
+/* Плавное частичное заполнение галочки */
+.partial-check-wrapper{position:relative;display:inline-block;line-height:1;font-size:15px;font-weight:bold;}
+.check-bg{color:var(--border);}
+.check-fg{position:absolute;top:0;left:0;bottom:0;color:var(--accent);overflow:hidden;white-space:nowrap;}
+
 /* ---------- Tabs / week-month switch ---------- */
 .pill-switch{display:inline-flex;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:3px;gap:2px;}
 .pill-switch button{padding:6px 13px;border-radius:6px;border:none;background:none;font-size:12.5px;font-weight:500;color:var(--muted);}
@@ -428,7 +434,7 @@ function seedData(){
     {id:'h_gym', name:'Тренировка в зале', description:'Силовая тренировка от 40 минут: разминка, основной блок, заминка.', categoryId:'cat_sport', trackingType:'binary', target:null, step:1, unit:'', cadence:'weekly', freq:2, segments:[], active:true, createdAt:todayISO()},
     {id:'h_steps', name:'10 000 шагов', description:'Суммарно за день — по данным телефона или часов, включая прогулки и бытовую активность.', categoryId:'cat_sport', trackingType:'percentage', target:10000, step:500, unit:'шагов', cadence:'daily', segments:[], active:true, createdAt:todayISO()},
     {id:'h_journal', name:'Дневник благодарности', description:'Коротко записать 3 вещи, за которые благодарен сегодня — утром и вечером.', categoryId:'cat_mind', trackingType:'binary', target:null, step:1, unit:'', cadence:'daily', segments:['Утро','Вечер'], active:true, createdAt:todayISO()},
-    {id:'h_read', name:'Чтение книги', description:'Минимум 20 страниц художественной или нон-фикшн литературы за раз, не считая рабочих текстов.', categoryId:'cat_mind', trackingType:'binary', target:null, step:1, unit:'', cadence:'monthly', freq:8, segments:[], active:true, createdAt:todayISO()},
+    {id:'h_read', name:'Чтение книги', description:'Минимум 20 страниц художественной или нон-фикшн литературы за раз, не считая рабочих текстов.', categoryId:'cat_mind', trackingType:'percentage', target:20, step:5, unit:'стр.', cadence:'monthly', freq:8, segments:[], active:true, createdAt:todayISO()},
   ];
   const plan = [
     {id:uid('plan'), habitId:'h_gym', goal:'Тренировка засчитывается, если длится от 40 минут и включает силовую часть.',
@@ -492,7 +498,7 @@ function seedData(){
     monthlyAssignments['h_read|'+mk] = dates;
     dates.forEach((iso,idx)=>{
       if(parseDateSafe(iso) > today) return;
-      entries[entryKey('h_read', iso, null)] = !(mBack===0 && idx>=dates.length-2);
+      entries[entryKey('h_read', iso, null)] = !(mBack===0 && idx>=dates.length-2) ? 25 : 10;
     });
   });
 
@@ -535,6 +541,7 @@ function loadExampleData(){
    НАВИГАЦИЯ
    ========================================================= */
 let currentView = 'today';
+let todayCursor = new Date();
 let weekCursor = new Date();
 let monthCursor = new Date();
 
@@ -605,7 +612,7 @@ function habitsNeedingAssignment(refDate){
 }
 
 /* =========================================================
-   ЗАПИСИ (entries) И РАСЧЁТЫ ПРОГРЕССА
+   ЗАПИСИ (entries) И РАСЧЁТЫ
    ========================================================= */
 function getEntry(habitId,date,segment){
   const v = state.entries[entryKey(habitId,date,segment)];
@@ -615,7 +622,6 @@ function setEntry(habitId,date,segment,value){
   state.entries[entryKey(habitId,date,segment)] = value; saveState();
 }
 
-// habitDayValue: capped=true для общих итогов (макс 100%), capped=false для реального отображения и рекордов
 function habitDayValue(habit, date, capped=false){
   if(habit.trackingType==='percentage'){
     if(habit.segments && habit.segments.length){
@@ -638,17 +644,24 @@ function habitDayValue(habit, date, capped=false){
   return capped ? Math.min(100, pct) : pct;
 }
 
-function endOfToday(){ const t=new Date(); t.setHours(23,59,59,999); return t; }
+function isDatePastOrFilled(iso){
+  const today = todayISO();
+  if(iso < today) return true;
+  if(iso === today){
+    return Object.keys(state.entries).some(k => k.includes('|'+iso+'|') && state.entries[k] !== null && state.entries[k] !== false && state.entries[k] !== 0);
+  }
+  return false;
+}
 
 function habitWeekCompletion(h, weekStart, capped=true){
   let sum=0, counted=false;
-  const today = endOfToday();
   for(let i=0;i<7;i++){
     const d = addDays(weekStart,i);
-    if(d>today) continue;
+    const iso = toISO(d);
+    if(!isDatePastOrFilled(iso)) continue;
     if(!isHabitScheduledOn(h,d)) continue;
     counted = true;
-    const v = habitDayValue(h, toISO(d), capped);
+    const v = habitDayValue(h, iso, capped);
     sum += (v===null?0:v);
   }
   if(!counted) return null;
@@ -660,13 +673,13 @@ function habitMonthCompletion(h, monthStartDate, capped=true){
   const y=monthStartDate.getFullYear(), m=monthStartDate.getMonth();
   const nd = daysInMonth(y,m);
   let sum=0, counted=false;
-  const today = endOfToday();
   for(let dnum=1; dnum<=nd; dnum++){
     const d = new Date(y,m,dnum);
-    if(d>today) continue;
+    const iso = toISO(d);
+    if(!isDatePastOrFilled(iso)) continue;
     if(!isHabitScheduledOn(h,d)) continue;
     counted = true;
-    const v = habitDayValue(h, toISO(d), capped);
+    const v = habitDayValue(h, iso, capped);
     sum += (v===null?0:v);
   }
   if(!counted) return null;
@@ -708,10 +721,14 @@ function habitMonthlyAllTimeAvg(h, startDate, endDate, capped=true){
 }
 
 function habitDailyRangeAvg(h, rangeStart, rangeEndInclusive, capped=true){
-  let sum=0,cnt=0; const today=endOfToday();
+  let sum=0,cnt=0;
   let d = new Date(rangeStart);
   while(d<=rangeEndInclusive){
-    if(d<=today){ const v=habitDayValue(h,toISO(d),capped); if(v!==null){ sum+=v; cnt++; } }
+    const iso = toISO(d);
+    if(isDatePastOrFilled(iso)){
+      const v = habitDayValue(h, iso, capped);
+      if(v!==null){ sum+=v; cnt++; }
+    }
     d = addDays(d,1);
   }
   if(!cnt) return null;
@@ -775,7 +792,6 @@ function bestMonthEver(){
   return {score:best, month:bestM};
 }
 
-// Для рекордов отдельной привычки capped=false (учитывает результат > 100%)
 function bestWeekForHabit(h){
   let ws = startOfWeek(trackingStartDate()); const end = new Date();
   let best=null;
@@ -822,12 +838,27 @@ function setTop(eyebrow,title,desc,actionsHTML){
 }
 
 /* =========================================================
-   ВИД: СЕГОДНЯ
+   ВИД: СЕГОДНЯ (с переключением дат)
    ========================================================= */
 function renderToday(){
-  const d = new Date();
-  const iso = todayISO();
-  setTop('Ежедневный учёт','Сегодня, '+DOW_FULL[(d.getDay()+6)%7].toLowerCase()+', '+fmtDate(iso),'Отмечайте выполнение привычек по категориям');
+  const d = todayCursor;
+  const iso = toISO(d);
+  const isActualToday = iso === todayISO();
+
+  setTop(
+    'Ежедневный учёт',
+    (isActualToday ? 'Сегодня, ' : '') + DOW_FULL[(d.getDay()+6)%7].toLowerCase() + ', ' + fmtDate(iso),
+    'Отмечайте выполнение привычек по категориям'
+  );
+
+  document.getElementById('topActions').innerHTML = `
+    <div class="pill-switch">
+      <button onclick="todayCursor=addDays(todayCursor,-1);render();">← Пред. день</button>
+      <button class="${isActualToday?'active':''}" onclick="todayCursor=new Date();render();">Сегодня</button>
+      <button onclick="todayCursor=addDays(todayCursor,1);render();">След. день →</button>
+    </div>
+  `;
+
   const c = document.getElementById('content');
   let html = '';
 
@@ -838,12 +869,13 @@ function renderToday(){
 
   const activeHabits = state.habits.filter(h=>h.active);
   const scheduledToday = activeHabits.filter(h=>isHabitScheduledOn(h,d));
-  // Средний прогресс дня ограничен 100%
-  const completion = scheduledToday.length ? Math.min(100, Math.round(scheduledToday.reduce((s,h)=>s+(habitDayValue(h,iso,true)||0),0)/scheduledToday.length)) : 0;
+  
+  const completionValues = scheduledToday.map(h => habitDayValue(h, iso, true)).filter(v => v !== null);
+  const completion = completionValues.length ? Math.min(100, Math.round(completionValues.reduce((a,b)=>a+b,0) / completionValues.length)) : 0;
 
   html += `<div class="grid cols-3" style="margin-bottom:26px;">
-    <div class="stat"><div class="label">Запланировано сегодня</div><div class="value">${scheduledToday.length}</div><div class="sub">из ${activeHabits.length} активных привычек</div></div>
-    <div class="stat"><div class="label">Средний прогресс дня</div><div class="value">${completion}%</div><div class="sub">по всем сегодняшним привычкам</div></div>
+    <div class="stat"><div class="label">Запланировано на день</div><div class="value">${scheduledToday.length}</div><div class="sub">из ${activeHabits.length} активных привычек</div></div>
+    <div class="stat"><div class="label">Средний прогресс дня</div><div class="value">${completion}%</div><div class="sub">по заполненным привычкам (макс 100%)</div></div>
     <div class="stat"><div class="label">Категорий в работе</div><div class="value">${new Set(scheduledToday.map(h=>h.categoryId)).size}</div><div class="sub">из ${state.categories.length} всего</div></div>
   </div>`;
 
@@ -855,9 +887,9 @@ function renderToday(){
       const hs = scheduledToday.filter(h=>h.categoryId===cat.id);
       const allInCat = activeHabits.filter(h=>h.categoryId===cat.id);
       if(!allInCat.length) return;
-      html += `<div class="cat-block"><div class="cat-head"><span class="cat-dot" style="background:${cat.color}"></span><h3>${cat.name}</h3><span class="cat-count">${hs.length}/${allInCat.length} сегодня</span></div>`;
+      html += `<div class="cat-block"><div class="cat-head"><span class="cat-dot" style="background:${cat.color}"></span><h3>${cat.name}</h3><span class="cat-count">${hs.length}/${allInCat.length} на дату</span></div>`;
       if(!hs.length){
-        html += `<div style="font-size:12px;color:var(--muted);padding:4px 2px 8px 2px;">Сегодня по этой категории привычек не запланировано.</div>`;
+        html += `<div style="font-size:12px;color:var(--muted);padding:4px 2px 8px 2px;">На этот день по данной категории ничего не запланировано.</div>`;
       }
       hs.forEach(h=> html += habitRowToday(h, iso));
       html += `</div>`;
@@ -884,7 +916,7 @@ function habitRowToday(h, iso){
         <span style="font-size:9px;color:var(--muted);text-align:center;white-space:nowrap;">${s}</span>
       </div>`;
     }).join('');
-    const pct = Math.max(0, Math.round(total/h.target*100)); // Без ограничения сверху
+    const pct = Math.max(0, Math.round(total/h.target*100));
     controls = `<div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
       <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;">${segInputs}</div>
       <span class="tag mono">Итого: ${total}/${h.target} ${h.unit} · <strong>${pct}%</strong></span>
@@ -980,13 +1012,13 @@ function renderWeek(){
   const isBestWeek = best.score!==null && thisWeekScore!==null && best.start && weekKeyOf(best.start)===wk;
 
   html += `<div class="grid cols-4" style="margin-bottom:22px;">
-    <div class="stat"><div class="label">Средний результат недели</div><div class="value">${thisWeekScore===null?'—':thisWeekScore+'%'}</div><div class="sub">по всем активным привычкам</div></div>
+    <div class="stat"><div class="label">Средний результат недели</div><div class="value">${thisWeekScore===null?'—':thisWeekScore+'%'}</div><div class="sub">по всем активным привычкам (макс 100%)</div></div>
     <div class="stat"><div class="label">К прошлой неделе</div><div class="value" style="font-size:20px;">${trendArrow(delta)}</div><div class="sub">${prevWeekScore===null?'нет данных за пред. неделю':'пред. неделя: '+prevWeekScore+'%'}</div></div>
     <div class="stat"><div class="label">Лучшая неделя за всё время</div><div class="value">${best.score===null?'—':best.score+'%'}</div><div class="sub">${isBestWeek?'это текущая неделя 🏆':(best.start?fmtShort(best.start)+' — '+fmtShort(addDays(best.start,6)):'—')}</div></div>
     <div class="stat"><div class="label">Активных привычек</div><div class="value">${activeHabits.length}</div><div class="sub">учитывается на этой неделе</div></div>
   </div>`;
 
-  // Таблица по дням с увеличенными ячейками и заливкой
+  // Таблица недели
   html += `<div class="card" style="margin-bottom:22px;overflow-x:auto;"><table><thead><tr><th style="min-width:170px;">Привычка</th>`;
   for(let i=0;i<7;i++){ const d=addDays(ws,i); html+=`<th class="week-cell">${DOW[i]}<br><span class="mono" style="font-weight:400;">${d.getDate()}</span></th>`; }
   html += `<th class="week-cell">Итог</th><th class="week-cell">Рекорд</th></tr></thead><tbody>`;
@@ -998,36 +1030,69 @@ function renderWeek(){
       const scheduled = isHabitScheduledOn(h,d);
       if(!scheduled){ html+=`<td class="week-cell">–</td>`; continue; }
       
-      const realVal = habitDayValue(h,iso,false); // Честный процент без обрезания
+      const realVal = habitDayValue(h,iso,false);
       const clickable = !future;
+      let innerHTML = '';
       let styleAttr = '';
       let cls = '';
-      let label = '';
+
+      const hasSegs = h.segments && h.segments.length > 0;
 
       if(h.trackingType==='percentage'){
         if(realVal!==null){
-          label = realVal + '%';
           const fillPct = Math.min(100, Math.max(0, realVal));
-          if(fillPct >= 100){
-            cls = 'done';
-          } else if(fillPct > 0){
-            // Градиентная заливка квадратика снизу вверх
-            styleAttr = `style="background: linear-gradient(to top, var(--accent) ${fillPct}%, var(--surface) ${fillPct}%); color: ${fillPct>55?'#fff':'var(--text)'}; font-weight:600; font-size:10px;"`;
+          if(hasSegs){
+            // Процентные с сегментами: частичная заливка квадратика и отображение реального процента
+            if(fillPct >= 100){
+              cls = 'done';
+              innerHTML = realVal + '%';
+            } else if(fillPct > 0){
+              styleAttr = `style="background: linear-gradient(to top, var(--accent) ${fillPct}%, var(--surface) ${fillPct}%); color: ${fillPct>55?'#fff':'var(--text)'}; font-weight:600; font-size:10px;"`;
+              innerHTML = realVal + '%';
+            } else {
+              styleAttr = `style="font-size:10px;"`;
+              innerHTML = '0%';
+            }
           } else {
-            styleAttr = `style="font-size:10px;"`;
+            // Обычные процентные привычки: заливка и число
+            if(fillPct >= 100){
+              cls = 'done';
+              innerHTML = realVal + '%';
+            } else if(fillPct > 0){
+              styleAttr = `style="background: linear-gradient(to top, var(--accent) ${fillPct}%, var(--surface) ${fillPct}%); color: ${fillPct>55?'#fff':'var(--text)'}; font-weight:600; font-size:10px;"`;
+              innerHTML = realVal + '%';
+            } else {
+              styleAttr = `style="font-size:10px;"`;
+              innerHTML = '0%';
+            }
           }
         }
       } else {
-        if(realVal===100){
-          cls = 'done';
-          label = '✓';
+        // Бинарные Да/Нет
+        if(hasSegs){
+          // Привычки с сегментами Да/Нет: частичная галочка
+          if(realVal!==null){
+            const fillPct = Math.min(100, Math.max(0, realVal));
+            if(fillPct >= 100){
+              cls = 'done';
+              innerHTML = '✓';
+            } else if(fillPct > 0){
+              innerHTML = `<span class="partial-check-wrapper"><span class="check-bg">✓</span><span class="check-fg" style="width:${fillPct}%;">✓</span></span>`;
+            }
+          }
+        } else {
+          // Обычные Да/Нет
+          if(realVal===100){
+            cls = 'done';
+            innerHTML = '✓';
+          }
         }
       }
 
-      html += `<td class="week-cell"><span class="day-check ${cls} ${future?'future':''}" ${styleAttr} ${clickable?`onclick="quickDayToggle('${h.id}','${iso}')"`:''}>${label}</span></td>`;
+      html += `<td class="week-cell"><span class="day-check ${cls} ${future?'future':''}" ${styleAttr} ${clickable?`onclick="quickDayToggle('${h.id}','${iso}')"`:''}>${innerHTML}</span></td>`;
     }
     
-    // Итог ограничен 100%, Рекорд — нет
+    // Итог ограничен 100%, Рекорд учитывает > 100%
     const summaryVal = h.cadence==='weekly' ? habitWeekCompletion(h, ws, true) : habitScoreForWeek(h, ws, true);
     const habitBest = bestWeekForHabit(h);
     html += `<td class="week-cell mono"><strong>${summaryVal===null?'—':summaryVal+'%'}</strong></td><td class="week-cell mono" style="color:var(--muted);">${habitBest===null?'—':habitBest+'%'}</td></tr>`;
@@ -1159,9 +1224,11 @@ function renderAllTime(){
     let running=0, bestStreak=0;
     let d = new Date(start);
     while(d<=end){
-      if(isHabitScheduledOn(h,d) && d<=endOfToday()){
-        const v = habitDayValue(h, toISO(d), true);
-        if(v===100){ running++; bestStreak=Math.max(bestStreak,running); } else if(v!==null || d<endOfToday()) running=0;
+      const iso = toISO(d);
+      if(isHabitScheduledOn(h,d) && isDatePastOrFilled(iso)){
+        const v = habitDayValue(h, iso, true);
+        if(v===100){ running++; bestStreak=Math.max(bestStreak,running); } 
+        else if(v!==null) running=0;
       }
       d = addDays(d,1);
     }
