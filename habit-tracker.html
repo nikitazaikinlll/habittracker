@@ -192,11 +192,7 @@ input,select,textarea{font-family:inherit;}
 .pct-wrap{display:flex;align-items:center;gap:8px;min-width:180px;}
 .pct-bar{flex:1;height:8px;border-radius:5px;background:var(--bg);overflow:hidden;border:1px solid var(--border);}
 .pct-bar-fill{height:100%;background:var(--accent);border-radius:5px;transition:width .15s;}
-
-.stepper{display:inline-flex;align-items:center;border:1px solid var(--border);border-radius:7px;background:var(--surface);overflow:hidden;}
-.stepper input{border:none;outline:none;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:12px;padding:4px 2px;width:56px;background:transparent;}
-.stepper-btn{background:none;border:none;padding:5px 7px;font-size:11px;color:var(--muted);display:flex;align-items:center;justify-content:center;line-height:1;transition:background .1s;}
-.stepper-btn:hover{background:var(--bg);color:var(--text);}
+.pct-input{width:56px;padding:5px 6px;border:1px solid var(--border);border-radius:6px;font-size:12px;text-align:right;font-family:'IBM Plex Mono',monospace;}
 
 .banner{
   display:flex;align-items:center;justify-content:space-between;gap:14px;
@@ -217,19 +213,10 @@ th{
 }
 td{padding:9px 10px;border-bottom:1px solid var(--border);}
 tr:last-child td{border-bottom:none;}
-.week-cell{text-align:center;width:54px;}
-.day-check{
-  width:36px;height:36px;border-radius:7px;border:1.5px solid var(--border);
-  display:inline-flex;align-items:center;justify-content:center;font-size:11px;
-  color:var(--muted);background:var(--surface);font-family:'IBM Plex Mono',monospace;
-  position:relative;overflow:hidden;user-select:none;
-}
-.day-check.done{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
+.week-cell{text-align:center;width:46px;}
+.day-check{width:24px;height:24px;border-radius:6px;border:1.5px solid var(--border);display:inline-flex;align-items:center;justify-content:center;font-size:12px;color:var(--muted);background:var(--surface);}
+.day-check.done{background:var(--accent);border-color:var(--accent);color:#fff;}
 .day-check.future{opacity:.35;}
-
-.partial-check-wrapper{position:relative;display:inline-block;line-height:1;font-size:15px;font-weight:bold;}
-.check-bg{color:var(--border);}
-.check-fg{position:absolute;top:0;left:0;bottom:0;color:var(--accent);overflow:hidden;white-space:nowrap;}
 
 /* ---------- Tabs / week-month switch ---------- */
 .pill-switch{display:inline-flex;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:3px;gap:2px;}
@@ -256,7 +243,7 @@ tr:last-child td{border-bottom:none;}
 .radio-row,.check-row{display:flex;gap:8px;flex-wrap:wrap;}
 .radio-opt{
   padding:7px 12px;border:1.5px solid var(--border);border-radius:7px;font-size:12.5px;color:var(--muted);
-  display:flex;align-items:center;gap:6px;cursor:pointer;
+  display:flex;align-items:center;gap:6px;
 }
 .radio-opt.sel{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);font-weight:600;}
 .chip{
@@ -406,33 +393,33 @@ const DOW_FULL = ['Понедельник','Вторник','Среда','Чет
 const MONTHS = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
 const CAT_COLORS = ['#1E7F72','#B8912F','#5B6EE1','#C1443A','#8A56AC','#2F8FBF','#C2703D'];
 
-function uid(prefix){ return prefix+'_'+Math.random().toString(36).slice(2,9); }[cite: 1]
-function pad(n){ return n<10 ? '0'+n : ''+n; }[cite: 1]
-function toISO(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }[cite: 1]
-function parseISO(s){ const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d); }[cite: 1]
-function todayISO(){ return toISO(new Date()); }[cite: 1]
-function startOfWeek(d){ const day=(d.getDay()+6)%7; const r=new Date(d); r.setDate(d.getDate()-day); r.setHours(0,0,0,0); return r; }[cite: 1]
-function addDays(d,n){ const r=new Date(d); r.setDate(r.getDate()+n); return r; }[cite: 1]
-function weekKeyOf(d){ return toISO(startOfWeek(d)); }[cite: 1]
-function monthKeyOf(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1); }[cite: 1]
-function daysInMonth(y,m){ return new Date(y,m+1,0).getDate(); }[cite: 1]
-function fmtShort(d){ return d.getDate()+' '+MONTHS[d.getMonth()].slice(0,3).toLowerCase(); }[cite: 1]
-function fmtDate(iso){ const d=parseISO(iso); return d.getDate()+' '+MONTHS[d.getMonth()].toLowerCase()+' '+d.getFullYear(); }[cite: 1]
+function uid(prefix){ return prefix+'_'+Math.random().toString(36).slice(2,9); }
+function pad(n){ return n<10 ? '0'+n : ''+n; }
+function toISO(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function parseISO(s){ const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d); }
+function todayISO(){ return toISO(new Date()); }
+function startOfWeek(d){ const day=(d.getDay()+6)%7; const r=new Date(d); r.setDate(d.getDate()-day); r.setHours(0,0,0,0); return r; }
+function addDays(d,n){ const r=new Date(d); r.setDate(r.getDate()+n); return r; }
+function weekKeyOf(d){ return toISO(startOfWeek(d)); }
+function monthKeyOf(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1); }
+function daysInMonth(y,m){ return new Date(y,m+1,0).getDate(); }
+function fmtShort(d){ return d.getDate()+' '+MONTHS[d.getMonth()].slice(0,3).toLowerCase(); }
+function fmtDate(iso){ const d=parseISO(iso); return d.getDate()+' '+MONTHS[d.getMonth()].toLowerCase()+' '+d.getFullYear(); }
 
 function seedData(){
   const cats = [
     {id:'cat_nutrition', name:'Питание', color:CAT_COLORS[0]},
     {id:'cat_sport', name:'Спорт и тело', color:CAT_COLORS[1]},
     {id:'cat_mind', name:'Ментальное здоровье', color:CAT_COLORS[2]},
-  ];[cite: 1]
+  ];
   const habits = [
-    {id:'h_water', name:'Водный баланс', description:'Пить воду равномерно в течение дня, не менее 2000 мл. Кофе и чай не считаются.', categoryId:'cat_nutrition', trackingType:'percentage', target:2000, step:250, unit:'мл', cadence:'daily', segments:['Утро','День','Вечер'], active:true, createdAt:todayISO()},
-    {id:'h_sugar', name:'Отказ от сладкого', description:'Никакого сахара, сладкой выпечки и сладких напитков в течение дня. Фрукты — можно.', categoryId:'cat_nutrition', trackingType:'binary', target:null, step:1, unit:'', cadence:'daily', segments:[], active:true, createdAt:todayISO()},
-    {id:'h_meals', name:'Режим питания', description:'Приём пищи в фиксированные окна: завтрак, обед, ужин — без перекусов между ними.', categoryId:'cat_nutrition', trackingType:'binary', target:null, step:1, unit:'', cadence:'daily', segments:['Утро','День','Вечер'], active:true, createdAt:todayISO()},
-    {id:'h_gym', name:'Тренировка в зале', description:'Силовая тренировка от 40 минут: разминка, основной блок, заминка.', categoryId:'cat_sport', trackingType:'binary', target:null, step:1, unit:'', cadence:'weekly', freq:2, segments:[], active:true, createdAt:todayISO()},
-    {id:'h_steps', name:'10 000 шагов', description:'Суммарно за день — по данным телефона или часов, включая прогулки и бытовую активность.', categoryId:'cat_sport', trackingType:'percentage', target:10000, step:500, unit:'шагов', cadence:'daily', segments:[], active:true, createdAt:todayISO()},
-    {id:'h_journal', name:'Дневник благодарности', description:'Коротко записать 3 вещи, за которые благодарен сегодня — утром и вечером.', categoryId:'cat_mind', trackingType:'binary', target:null, step:1, unit:'', cadence:'daily', segments:['Утро','Вечер'], active:true, createdAt:todayISO()},
-    {id:'h_read', name:'Чтение книги', description:'Минимум 20 страниц художественной или нон-фикшн литературы за раз, не считая рабочих текстов.', categoryId:'cat_mind', trackingType:'percentage', target:20, step:5, unit:'стр.', cadence:'monthly', freq:8, segments:[], active:true, createdAt:todayISO()},
+    {id:'h_water', name:'Водный баланс', description:'Пить воду равномерно в течение дня, не менее 2000 мл. Кофе и чай не считаются.', categoryId:'cat_nutrition', trackingType:'percentage', target:2000, unit:'мл', cadence:'daily', segments:['Утро','День','Вечер'], active:true, createdAt:todayISO()},
+    {id:'h_sugar', name:'Отказ от сладкого', description:'Никакого сахара, сладкой выпечки и сладких напитков в течение дня. Фрукты — можно.', categoryId:'cat_nutrition', trackingType:'binary', target:null, unit:'', cadence:'daily', segments:[], active:true, createdAt:todayISO()},
+    {id:'h_meals', name:'Режим питания', description:'Приём пищи в фиксированные окна: завтрак, обед, ужин — без перекусов между ними.', categoryId:'cat_nutrition', trackingType:'binary', target:null, unit:'', cadence:'daily', segments:['Утро','День','Вечер'], active:true, createdAt:todayISO()},
+    {id:'h_gym', name:'Тренировка в зале', description:'Силовая тренировка от 40 минут: разминка, основной блок, заминка.', categoryId:'cat_sport', trackingType:'binary', target:null, unit:'', cadence:'weekly', freq:2, segments:[], active:true, createdAt:todayISO()},
+    {id:'h_steps', name:'10 000 шагов', description:'Суммарно за день — по данным телефона или часов, включая прогулки и бытовую активность.', categoryId:'cat_sport', trackingType:'percentage', target:10000, unit:'шагов', cadence:'daily', segments:[], active:true, createdAt:todayISO()},
+    {id:'h_journal', name:'Дневник благодарности', description:'Коротко записать 3 вещи, за которые благодарен сегодня — утром и вечером.', categoryId:'cat_mind', trackingType:'binary', target:null, unit:'', cadence:'daily', segments:['Утро','Вечер'], active:true, createdAt:todayISO()},
+    {id:'h_read', name:'Чтение книги', description:'Минимум 20 страниц художественной или нон-фикшн литературы за раз, не считая рабочих текстов.', categoryId:'cat_mind', trackingType:'binary', target:null, unit:'', cadence:'monthly', freq:8, segments:[], active:true, createdAt:todayISO()},
   ];
   const plan = [
     {id:uid('plan'), habitId:'h_gym', goal:'Тренировка засчитывается, если длится от 40 минут и включает силовую часть.',
@@ -446,810 +433,730 @@ function seedData(){
         {id:uid('ph'), name:'Базовый уровень: 1200 мл', start:toISO(addDays(new Date(),-10)), end:toISO(addDays(new Date(),4)), note:'Приучение к бутылке воды на столе.'},
         {id:uid('ph'), name:'Целевой уровень: 2000 мл', start:toISO(addDays(new Date(),4)), end:toISO(addDays(new Date(),34)), note:'Полный целевой объём, контроль по времени суток.'},
       ]},
-  ];[cite: 1]
+  ];
 
-  const entries = {};[cite: 1]
-  const weeklyAssignments = {};[cite: 1]
-  const monthlyAssignments = {};[cite: 1]
-  const today = new Date();[cite: 1]
+  // -------- демонстрационная история за последние ~3 недели --------
+  const entries = {};
+  const weeklyAssignments = {};
+  const monthlyAssignments = {};
+  const today = new Date();
 
   for(let back=20; back>=0; back--){
-    const d = addDays(today, -back);[cite: 1]
-    const iso = toISO(d);[cite: 1]
-    const totalW = (back%6===0) ? 900 : (1600 + (back*37)%700);[cite: 1]
-    let mW, dW, eW;[cite: 1]
-    if(back===4){ mW=100; dW=150; eW=Math.max(0,totalW-250); }[cite: 1]
-    else if(back===10){ mW=250; dW=250; eW=Math.max(0,totalW-500); }[cite: 1]
-    else { mW=Math.round(totalW*0.32); dW=Math.round(totalW*0.34); eW=Math.max(0,totalW-mW-dW); }[cite: 1]
-    entries[entryKey('h_water', iso, 'Утро')] = mW;[cite: 1]
-    entries[entryKey('h_water', iso, 'День')] = dW;[cite: 1]
-    entries[entryKey('h_water', iso, 'Вечер')] = eW;[cite: 1]
-    entries[entryKey('h_sugar', iso, null)] = !(back===3 || back===9);[cite: 1]
-    entries[entryKey('h_meals', iso, 'Утро')] = true;[cite: 1]
-    entries[entryKey('h_meals', iso, 'День')] = !(back===2 || back===11);[cite: 1]
-    entries[entryKey('h_meals', iso, 'Вечер')] = !(back===5);[cite: 1]
-    entries[entryKey('h_steps', iso, null)] = 5000 + ((back*613)%7000);[cite: 1]
-    entries[entryKey('h_journal', iso, 'Утро')] = !(back===7 || back===14);[cite: 1]
-    entries[entryKey('h_journal', iso, 'Вечер')] = !(back===1 || back===8 || back===16);[cite: 1]
+    const d = addDays(today, -back);
+    const iso = toISO(d);
+    // водный баланс: общий итог обычно близко к цели (2000 мл); распределение по частям
+    // дня разное — где-то ровно, где-то вода выпита рывком вечером (для наглядности в аналитике).
+    const totalW = (back%6===0) ? 900 : (1600 + (back*37)%700);
+    let mW, dW, eW;
+    if(back===4){ mW=100; dW=150; eW=Math.max(0,totalW-250); }
+    else if(back===10){ mW=250; dW=250; eW=Math.max(0,totalW-500); }
+    else { mW=Math.round(totalW*0.32); dW=Math.round(totalW*0.34); eW=Math.max(0,totalW-mW-dW); }
+    entries[entryKey('h_water', iso, 'Утро')] = mW;
+    entries[entryKey('h_water', iso, 'День')] = dW;
+    entries[entryKey('h_water', iso, 'Вечер')] = eW;
+    // отказ от сладкого: в основном да, пара срывов
+    entries[entryKey('h_sugar', iso, null)] = !(back===3 || back===9);
+    // режим питания: сегменты утро/день/вечер
+    entries[entryKey('h_meals', iso, 'Утро')] = true;
+    entries[entryKey('h_meals', iso, 'День')] = !(back===2 || back===11);
+    entries[entryKey('h_meals', iso, 'Вечер')] = !(back===5);
+    // шаги
+    entries[entryKey('h_steps', iso, null)] = 5000 + ((back*613)%7000);
+    // дневник благодарности: утро/вечер
+    entries[entryKey('h_journal', iso, 'Утро')] = !(back===7 || back===14);
+    entries[entryKey('h_journal', iso, 'Вечер')] = !(back===1 || back===8 || back===16);
   }
 
+  // тренировка в зале — 2 раза в неделю, за последние 3 недели + текущая (частично)
   for(let wBack=3; wBack>=0; wBack--){
-    const ws = startOfWeek(addDays(today, -7*wBack));[cite: 1]
-    const wk = weekKeyOf(ws);[cite: 1]
-    const tue = toISO(addDays(ws,1)), fri = toISO(addDays(ws,4));[cite: 1]
-    weeklyAssignments['h_gym|'+wk] = [tue, fri];[cite: 1]
+    const ws = startOfWeek(addDays(today, -7*wBack));
+    const wk = weekKeyOf(ws);
+    // дни тренировок — вторник и пятница той недели
+    const tue = toISO(addDays(ws,1)), fri = toISO(addDays(ws,4));
+    weeklyAssignments['h_gym|'+wk] = [tue, fri];
     if(wBack>0){
-      entries[entryKey('h_gym', tue, null)] = !(wBack===2);[cite: 1]
-      entries[entryKey('h_gym', fri, null)] = true;[cite: 1]
+      entries[entryKey('h_gym', tue, null)] = !(wBack===2);
+      entries[entryKey('h_gym', fri, null)] = true;
     } else {
-      if(parseDateSafe(tue) <= today) entries[entryKey('h_gym', tue, null)] = true;[cite: 1]
+      // текущая неделя: отмечаем только вторник, чтобы наглядно показать частичное
+      // выполнение нормы (2х/неделю) в аналитике — пятница ещё "не сделана".
+      if(parseDateSafe(tue) <= today) entries[entryKey('h_gym', tue, null)] = true;
     }
   }
 
+  // чтение книги — до 8 раз в месяц, назначаем и частично выполняем текущий и прошлый месяц
   [0,1].forEach(mBack=>{
-    const mDate = new Date(today.getFullYear(), today.getMonth()-mBack, 1);[cite: 1]
-    const mk = monthKeyOf(mDate);[cite: 1]
-    const nd = daysInMonth(mDate.getFullYear(), mDate.getMonth());[cite: 1]
-    const step = Math.max(1, Math.floor(nd/8));[cite: 1]
-    const dates = [];[cite: 1]
-    for(let i=1; i<=nd && dates.length<8; i+=step){ dates.push(toISO(new Date(mDate.getFullYear(), mDate.getMonth(), i))); }[cite: 1]
-    monthlyAssignments['h_read|'+mk] = dates;[cite: 1]
+    const mDate = new Date(today.getFullYear(), today.getMonth()-mBack, 1);
+    const mk = monthKeyOf(mDate);
+    const nd = daysInMonth(mDate.getFullYear(), mDate.getMonth());
+    const step = Math.max(1, Math.floor(nd/8));
+    const dates = [];
+    for(let i=1; i<=nd && dates.length<8; i+=step){ dates.push(toISO(new Date(mDate.getFullYear(), mDate.getMonth(), i))); }
+    monthlyAssignments['h_read|'+mk] = dates;
     dates.forEach((iso,idx)=>{
-      if(parseDateSafe(iso) > today) return;[cite: 1]
-      entries[entryKey('h_read', iso, null)] = !(mBack===0 && idx>=dates.length-2) ? 25 : 10;
+      if(parseDateSafe(iso) > today) return;
+      entries[entryKey('h_read', iso, null)] = !(mBack===0 && idx>=dates.length-2); // последние 1-2 в этом месяце ещё не прочитаны
     });
   });
 
-  return {categories:cats, habits:habits, entries:entries, weeklyAssignments:weeklyAssignments, monthlyAssignments:monthlyAssignments, strategicPlan:plan};[cite: 1]
+  return {categories:cats, habits:habits, entries:entries, weeklyAssignments:weeklyAssignments, monthlyAssignments:monthlyAssignments, strategicPlan:plan};
 }
-function parseDateSafe(iso){ const [y,m,d]=iso.split('-').map(Number); return new Date(y,m-1,d); }[cite: 1]
+function parseDateSafe(iso){ const [y,m,d]=iso.split('-').map(Number); return new Date(y,m-1,d); }
 
-let state = null;[cite: 1]
+let state = null;
 
 function loadState(){
   try{
-    const raw = localStorage.getItem('habitops_state_v1');[cite: 1]
-    if(raw){ 
-      state = JSON.parse(raw);[cite: 1]
-      state.habits.forEach(h=>{ if(h.step===undefined) h.step = h.trackingType==='percentage'? (h.target>=1000?100:1) : 1; });
-      return; 
-    }
-  }catch(e){}
-  state = seedData();[cite: 1]
+    const raw = localStorage.getItem('habitops_state_v1');
+    if(raw){ state = JSON.parse(raw); return; }
+  }catch(e){ /* localStorage недоступен в этом окружении — работаем в памяти */ }
+  state = seedData();
 }
 function saveState(){
-  state.updatedAt = Date.now();[cite: 1]
+  state.updatedAt = Date.now();
   try{
-    localStorage.setItem('habitops_state_v1', JSON.stringify(state));[cite: 1]
-    document.getElementById('saveState').textContent = 'Сохранено · '+new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});[cite: 1]
+    localStorage.setItem('habitops_state_v1', JSON.stringify(state));
+    document.getElementById('saveState').textContent = 'Сохранено · '+new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
   }catch(e){
-    document.getElementById('saveState').textContent = 'Память сессии — сохраняйте копию вручную';[cite: 1]
+    document.getElementById('saveState').textContent = 'Память сессии — сохраняйте копию вручную';
   }
-  scheduleCloudPush();[cite: 1]
+  scheduleCloudPush();
 }
-function entryKey(habitId,date,segment){ return habitId+'|'+date+'|'+(segment||'_'); }[cite: 1]
+function entryKey(habitId,date,segment){ return habitId+'|'+date+'|'+(segment||'_'); }
 
 function loadExampleData(){
-  if((state.categories.length || state.habits.length) && !confirm('Текущие данные будут заменены примером. Продолжить?')) return;[cite: 1]
-  state = seedData();[cite: 1]
-  saveState(); toast('Приложение заполнено примером'); render();[cite: 1]
+  if((state.categories.length || state.habits.length) && !confirm('Текущие данные будут заменены примером. Продолжить?')) return;
+  state = seedData();
+  saveState(); toast('Приложение заполнено примером'); render();
 }
 
 /* =========================================================
    НАВИГАЦИЯ
    ========================================================= */
-let currentView = 'today';[cite: 1]
-let todayCursor = new Date();
-let weekCursor = new Date();[cite: 1]
-let monthCursor = new Date();[cite: 1]
+let currentView = 'today';
+let weekCursor = new Date();
+let monthCursor = new Date();
 
 document.querySelectorAll('.nav-item').forEach(btn=>{
-  btn.addEventListener('click', ()=>{ currentView = btn.dataset.view; render(); closeMobileSidebar(); });[cite: 1]
+  btn.addEventListener('click', ()=>{ currentView = btn.dataset.view; render(); closeMobileSidebar(); });
 });
 
+/* Мобильное выезжающее меню */
 function openMobileSidebar(){
-  document.querySelector('.sidebar').classList.add('open');[cite: 1]
-  document.getElementById('sidebarBackdrop').classList.add('show');[cite: 1]
+  document.querySelector('.sidebar').classList.add('open');
+  document.getElementById('sidebarBackdrop').classList.add('show');
 }
 function closeMobileSidebar(){
-  document.querySelector('.sidebar').classList.remove('open');[cite: 1]
-  document.getElementById('sidebarBackdrop').classList.remove('show');[cite: 1]
+  document.querySelector('.sidebar').classList.remove('open');
+  document.getElementById('sidebarBackdrop').classList.remove('show');
 }
-document.getElementById('btnHamburger').addEventListener('click', openMobileSidebar);[cite: 1]
-document.getElementById('btnSidebarClose').addEventListener('click', closeMobileSidebar);[cite: 1]
-document.getElementById('sidebarBackdrop').addEventListener('click', closeMobileSidebar);[cite: 1]
+document.getElementById('btnHamburger').addEventListener('click', openMobileSidebar);
+document.getElementById('btnSidebarClose').addEventListener('click', closeMobileSidebar);
+document.getElementById('sidebarBackdrop').addEventListener('click', closeMobileSidebar);
 
 function setActiveNav(){
-  document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active', b.dataset.view===currentView));[cite: 1]
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active', b.dataset.view===currentView));
 }
 
 function toast(msg){
-  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');[cite: 1]
-  clearTimeout(window.__toastTimer);[cite: 1]
-  window.__toastTimer=setTimeout(()=>t.classList.remove('show'),2200);[cite: 1]
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer=setTimeout(()=>t.classList.remove('show'),2200);
 }
 
 /* =========================================================
-   ЛОГИКА ПРИВЫЧЕК
+   ЛОГИКА ПРИВЫЧЕК: назначение дней для weekly/monthly
    ========================================================= */
 function getWeeklyAssignment(habit, wk){
-  return state.weeklyAssignments[habit.id+'|'+wk] || null;[cite: 1]
+  return state.weeklyAssignments[habit.id+'|'+wk] || null;
 }
 function setWeeklyAssignment(habit, wk, dates){
-  state.weeklyAssignments[habit.id+'|'+wk] = dates; saveState();[cite: 1]
+  state.weeklyAssignments[habit.id+'|'+wk] = dates; saveState();
 }
 function getMonthlyAssignment(habit, mk){
-  return state.monthlyAssignments[habit.id+'|'+mk] || null;[cite: 1]
+  return state.monthlyAssignments[habit.id+'|'+mk] || null;
 }
 function setMonthlyAssignment(habit, mk, dates){
-  state.monthlyAssignments[habit.id+'|'+mk] = dates; saveState();[cite: 1]
+  state.monthlyAssignments[habit.id+'|'+mk] = dates; saveState();
 }
 
 function isHabitScheduledOn(habit, dateObj){
-  const iso = toISO(dateObj);[cite: 1]
-  if(habit.cadence==='daily') return true;[cite: 1]
+  const iso = toISO(dateObj);
+  if(habit.cadence==='daily') return true;
   if(habit.cadence==='weekly'){
-    const wk = weekKeyOf(dateObj);[cite: 1]
-    const a = getWeeklyAssignment(habit, wk);[cite: 1]
-    return a ? a.includes(iso) : false;[cite: 1]
+    const wk = weekKeyOf(dateObj);
+    const a = getWeeklyAssignment(habit, wk);
+    return a ? a.includes(iso) : false;
   }
   if(habit.cadence==='monthly'){
-    const mk = monthKeyOf(dateObj);[cite: 1]
-    const a = getMonthlyAssignment(habit, mk);[cite: 1]
-    return a ? a.includes(iso) : false;[cite: 1]
-  }
-  return false;[cite: 1]
-}
-
-function habitsNeedingAssignment(refDate){
-  const wk = weekKeyOf(refDate), mk = monthKeyOf(refDate);[cite: 1]
-  return state.habits.filter(h=>h.active && ([cite: 1]
-    (h.cadence==='weekly' && !getWeeklyAssignment(h,wk)) ||[cite: 1]
-    (h.cadence==='monthly' && !getMonthlyAssignment(h,mk))[cite: 1]
-  ));
-}
-
-/* =========================================================
-   ЗАПИСИ (entries) И РАСЧЁТЫ
-   ========================================================= */
-function getEntry(habitId,date,segment){
-  const v = state.entries[entryKey(habitId,date,segment)];[cite: 1]
-  return v===undefined ? null : v;[cite: 1]
-}
-function setEntry(habitId,date,segment,value){
-  state.entries[entryKey(habitId,date,segment)] = value; saveState();[cite: 1]
-}
-
-function habitDayValue(habit, date, capped=false){
-  if(habit.trackingType==='percentage'){
-    if(habit.segments && habit.segments.length){
-      let any=false, actualTotal=0;
-      habit.segments.forEach(s=>{ const v=getEntry(habit.id,date,s); if(v!==null){ any=true; actualTotal+=v; } });[cite: 1]
-      if(!any) return null;[cite: 1]
-      const pct = Math.round((actualTotal/habit.target)*100);
-      return capped ? Math.max(0, Math.min(100, pct)) : Math.max(0, pct);
-    }
-    const v = getEntry(habit.id,date,null);[cite: 1]
-    if(v===null) return null;[cite: 1]
-    const pct = Math.round((v/habit.target)*100);
-    return capped ? Math.max(0, Math.min(100, pct)) : Math.max(0, pct);
-  }
-  const segs = (habit.segments&&habit.segments.length) ? habit.segments : [null];[cite: 1]
-  let done=0, total=segs.length, any=false;[cite: 1]
-  segs.forEach(s=>{ const v=getEntry(habit.id,date,s); if(v!==null){any=true;} if(v===true) done++; });[cite: 1]
-  if(!any) return null;[cite: 1]
-  const pct = Math.round((done/total)*100);[cite: 1]
-  return capped ? Math.min(100, pct) : pct;
-}
-
-function isDatePastOrFilled(iso){
-  const today = todayISO();
-  if(iso < today) return true;
-  if(iso === today){
-    return Object.keys(state.entries).some(k => k.includes('|'+iso+'|') && state.entries[k] !== null && state.entries[k] !== false && state.entries[k] !== 0);
+    const mk = monthKeyOf(dateObj);
+    const a = getMonthlyAssignment(habit, mk);
+    return a ? a.includes(iso) : false;
   }
   return false;
 }
 
-function habitWeekCompletion(h, weekStart, capped=true){
-  let sum=0, counted=false;
-  for(let i=0;i<7;i++){
-    const d = addDays(weekStart,i);[cite: 1]
-    const iso = toISO(d);[cite: 1]
-    if(!isDatePastOrFilled(iso)) continue;
-    if(!isHabitScheduledOn(h,d)) continue;[cite: 1]
-    counted = true;[cite: 1]
-    const v = habitDayValue(h, iso, capped);
-    sum += (v===null?0:v);[cite: 1]
-  }
-  if(!counted) return null;[cite: 1]
-  const res = Math.round(sum / h.freq);
-  return capped ? Math.min(100, res) : res;
+function habitsNeedingAssignment(refDate){
+  const wk = weekKeyOf(refDate), mk = monthKeyOf(refDate);
+  return state.habits.filter(h=>h.active && (
+    (h.cadence==='weekly' && !getWeeklyAssignment(h,wk)) ||
+    (h.cadence==='monthly' && !getMonthlyAssignment(h,mk))
+  ));
 }
 
-function habitMonthCompletion(h, monthStartDate, capped=true){
-  const y=monthStartDate.getFullYear(), m=monthStartDate.getMonth();[cite: 1]
-  const nd = daysInMonth(y,m);[cite: 1]
-  let sum=0, counted=false;[cite: 1]
-  for(let dnum=1; dnum<=nd; dnum++){
-    const d = new Date(y,m,dnum);[cite: 1]
-    const iso = toISO(d);
-    if(!isDatePastOrFilled(iso)) continue;
-    if(!isHabitScheduledOn(h,d)) continue;[cite: 1]
-    counted = true;[cite: 1]
-    const v = habitDayValue(h, iso, capped);
-    sum += (v===null?0:v);[cite: 1]
-  }
-  if(!counted) return null;[cite: 1]
-  const res = Math.round(sum / h.freq);
-  return capped ? Math.min(100, res) : res;
+/* =========================================================
+   ЗАПИСИ (entries)
+   ========================================================= */
+function getEntry(habitId,date,segment){
+  const v = state.entries[entryKey(habitId,date,segment)];
+  return v===undefined ? null : v;
 }
-
-function weeksOverlappingMonth(y,m){
-  const first = new Date(y,m,1), last = new Date(y,m,daysInMonth(y,m));[cite: 1]
-  let ws = startOfWeek(first);[cite: 1]
-  const weeks = [];[cite: 1]
-  while(ws<=last){ weeks.push(new Date(ws)); ws = addDays(ws,7); }[cite: 1]
-  return weeks;[cite: 1]
+function setEntry(habitId,date,segment,value){
+  state.entries[entryKey(habitId,date,segment)] = value; saveState();
 }
-
-function habitWeeklyHabitMonthAvg(h, y, m, capped=true){
-  const vals = weeksOverlappingMonth(y,m).map(ws=>habitWeekCompletion(h,ws,capped)).filter(v=>v!==null);[cite: 1]
-  if(!vals.length) return null;[cite: 1]
-  const res = Math.round(vals.reduce((a,b)=>a+b,0)/vals.length);[cite: 1]
-  return capped ? Math.min(100, res) : res;
-}
-
-function habitWeeklyAllTimeAvg(h, startDate, endDate, capped=true){
-  let ws = startOfWeek(startDate); const vals=[];[cite: 1]
-  while(ws<=endDate){ const v=habitWeekCompletion(h,ws,capped); if(v!==null) vals.push(v); ws=addDays(ws,7); }[cite: 1]
-  if(!vals.length) return null;[cite: 1]
-  const res = Math.round(vals.reduce((a,b)=>a+b,0)/vals.length);[cite: 1]
-  return capped ? Math.min(100, res) : res;
-}
-
-function habitMonthlyAllTimeAvg(h, startDate, endDate, capped=true){
-  let mc = new Date(startDate.getFullYear(), startDate.getMonth(),1);[cite: 1]
-  const endM = new Date(endDate.getFullYear(), endDate.getMonth(),1);[cite: 1]
-  const vals=[];[cite: 1]
-  while(mc<=endM){ const v=habitMonthCompletion(h,mc,capped); if(v!==null) vals.push(v); mc=new Date(mc.getFullYear(),mc.getMonth()+1,1); }[cite: 1]
-  if(!vals.length) return null;[cite: 1]
-  const res = Math.round(vals.reduce((a,b)=>a+b,0)/vals.length);[cite: 1]
-  return capped ? Math.min(100, res) : res;
-}
-
-function habitDailyRangeAvg(h, rangeStart, rangeEndInclusive, capped=true){
-  let sum=0,cnt=0;
-  let d = new Date(rangeStart);[cite: 1]
-  while(d<=rangeEndInclusive){
-    const iso = toISO(d);
-    if(isDatePastOrFilled(iso)){
-      const v = habitDayValue(h, iso, capped);
-      if(v!==null){ sum+=v; cnt++; }[cite: 1]
+function habitDayValue(habit, date){
+  // возвращает 0..100 (процент выполнения привычки за день, с учётом сегментов)
+  if(habit.trackingType==='percentage'){
+    if(habit.segments && habit.segments.length){
+      // Проценты с частями дня: общий итог за день = сумма фактических значений по частям.
+      let any=false, actualTotal=0;
+      habit.segments.forEach(s=>{ const v=getEntry(habit.id,date,s); if(v!==null){ any=true; actualTotal+=v; } });
+      if(!any) return null;
+      return Math.max(0, Math.min(100, Math.round(actualTotal/habit.target*100)));
     }
-    d = addDays(d,1);[cite: 1]
+    const v = getEntry(habit.id,date,null);
+    if(v===null) return null;
+    return Math.max(0,Math.min(100, Math.round((v/habit.target)*100)));
   }
-  if(!cnt) return null;[cite: 1]
-  const res = Math.round(sum/cnt);[cite: 1]
-  return capped ? Math.min(100, res) : res;
+  const segs = (habit.segments&&habit.segments.length) ? habit.segments : [null];
+  let done=0, total=segs.length, any=false;
+  segs.forEach(s=>{ const v=getEntry(habit.id,date,s); if(v!==null){any=true;} if(v===true) done++; });
+  if(!any) return null;
+  return Math.round((done/total)*100);
 }
 
-function habitScoreForWeek(h, weekStart, capped=true){
-  if(h.cadence==='weekly') return habitWeekCompletion(h, weekStart, capped);[cite: 1]
-  return habitDailyRangeAvg(h, weekStart, addDays(weekStart,6), capped);[cite: 1]
+/* ---------------------------------------------------------------
+   Аналитика для привычек с гибкой периодичностью (N раз в неделю / в месяц).
+   Важно: результат считается НЕ как среднее по фактически отмеченным дням,
+   а как отношение "набрано баллов / норма (freq)". Так, привычка "зал 2х/неделю",
+   выполненная только 1 раз, даёт 50%, а не 100% — недостающие сессии
+   (уже прошедшие и не назначенные/не выполненные) учитываются как 0.
+   Ещё не наступившие дни периода в расчёт пока не берутся (период не завершён).
+   ------------------------------------------------------------- */
+function endOfToday(){ const t=new Date(); t.setHours(23,59,59,999); return t; }
+
+function habitWeekCompletion(h, weekStart){
+  // h.cadence === 'weekly'. Возвращает 0..100 либо null, если по этой неделе ещё нет данных.
+  let sum=0, counted=false;
+  const today = endOfToday();
+  for(let i=0;i<7;i++){
+    const d = addDays(weekStart,i);
+    if(d>today) continue;
+    if(!isHabitScheduledOn(h,d)) continue;
+    counted = true;
+    const v = habitDayValue(h, toISO(d));
+    sum += (v===null?0:v);
+  }
+  if(!counted) return null;
+  return Math.min(100, Math.round(sum / h.freq));
+}
+function habitMonthCompletion(h, monthStartDate){
+  // h.cadence === 'monthly'. Возвращает 0..100 либо null.
+  const y=monthStartDate.getFullYear(), m=monthStartDate.getMonth();
+  const nd = daysInMonth(y,m);
+  let sum=0, counted=false;
+  const today = endOfToday();
+  for(let dnum=1; dnum<=nd; dnum++){
+    const d = new Date(y,m,dnum);
+    if(d>today) continue;
+    if(!isHabitScheduledOn(h,d)) continue;
+    counted = true;
+    const v = habitDayValue(h, toISO(d));
+    sum += (v===null?0:v);
+  }
+  if(!counted) return null;
+  return Math.min(100, Math.round(sum / h.freq));
+}
+function weeksOverlappingMonth(y,m){
+  const first = new Date(y,m,1), last = new Date(y,m,daysInMonth(y,m));
+  let ws = startOfWeek(first);
+  const weeks = [];
+  while(ws<=last){ weeks.push(new Date(ws)); ws = addDays(ws,7); }
+  return weeks;
+}
+function habitWeeklyHabitMonthAvg(h, y, m){
+  // Для привычки "N раз/неделю" — средняя по всем неделям, затрагивающим этот месяц.
+  const vals = weeksOverlappingMonth(y,m).map(ws=>habitWeekCompletion(h,ws)).filter(v=>v!==null);
+  if(!vals.length) return null;
+  return Math.round(vals.reduce((a,b)=>a+b,0)/vals.length);
+}
+function habitWeeklyAllTimeAvg(h, startDate, endDate){
+  let ws = startOfWeek(startDate); const vals=[];
+  while(ws<=endDate){ const v=habitWeekCompletion(h,ws); if(v!==null) vals.push(v); ws=addDays(ws,7); }
+  if(!vals.length) return null;
+  return Math.round(vals.reduce((a,b)=>a+b,0)/vals.length);
+}
+function habitMonthlyAllTimeAvg(h, startDate, endDate){
+  let mc = new Date(startDate.getFullYear(), startDate.getMonth(),1);
+  const endM = new Date(endDate.getFullYear(), endDate.getMonth(),1);
+  const vals=[];
+  while(mc<=endM){ const v=habitMonthCompletion(h,mc); if(v!==null) vals.push(v); mc=new Date(mc.getFullYear(),mc.getMonth()+1,1); }
+  if(!vals.length) return null;
+  return Math.round(vals.reduce((a,b)=>a+b,0)/vals.length);
+}
+function habitDailyRangeAvg(h, rangeStart, rangeEndInclusive){
+  // Для ежедневных привычек — как и раньше, среднее по дням, где есть отметка.
+  let sum=0,cnt=0; const today=endOfToday();
+  let d = new Date(rangeStart);
+  while(d<=rangeEndInclusive){
+    if(d<=today){ const v=habitDayValue(h,toISO(d)); if(v!==null){ sum+=v; cnt++; } }
+    d = addDays(d,1);
+  }
+  return cnt? Math.round(sum/cnt) : null;
+}
+// Универсальный показатель привычки за конкретную неделю (для таблицы/графика недели
+// и для помесячной "динамики по неделям"). Для monthly-привычек это лишь фрагмент —
+// среднее по дням этой недели, которые ей назначены (полноценная норма считается по месяцу).
+function habitScoreForWeek(h, weekStart){
+  if(h.cadence==='weekly') return habitWeekCompletion(h, weekStart);
+  if(h.cadence==='monthly') return habitDailyRangeAvg(h, weekStart, addDays(weekStart,6));
+  return habitDailyRangeAvg(h, weekStart, addDays(weekStart,6));
+}
+// Универсальный показатель привычки за конкретный месяц (для таблицы/графика месяца
+// и для "средней эффективности за месяц" в общей истории).
+function habitScoreForMonth(h, y, m){
+  const monthStart = new Date(y,m,1), monthEnd = new Date(y,m,daysInMonth(y,m));
+  if(h.cadence==='monthly') return habitMonthCompletion(h, monthStart);
+  if(h.cadence==='weekly') return habitWeeklyHabitMonthAvg(h, y, m);
+  return habitDailyRangeAvg(h, monthStart, monthEnd);
+}
+// Показатель привычки за весь период наблюдения (для вкладки «Итоги»).
+function habitScoreAllTime(h, startDate, endDate){
+  if(h.cadence==='weekly') return habitWeeklyAllTimeAvg(h, startDate, endDate);
+  if(h.cadence==='monthly') return habitMonthlyAllTimeAvg(h, startDate, endDate);
+  return habitDailyRangeAvg(h, startDate, endDate);
 }
 
-function habitScoreForMonth(h, y, m, capped=true){
-  const monthStart = new Date(y,m,1), monthEnd = new Date(y,m,daysInMonth(y,m));[cite: 1]
-  if(h.cadence==='monthly') return habitMonthCompletion(h, monthStart, capped);[cite: 1]
-  if(h.cadence==='weekly') return habitWeeklyHabitMonthAvg(h, y, m, capped);[cite: 1]
-  return habitDailyRangeAvg(h, monthStart, monthEnd, capped);[cite: 1]
-}
-
-function habitScoreAllTime(h, startDate, endDate, capped=true){
-  if(h.cadence==='weekly') return habitWeeklyAllTimeAvg(h, startDate, endDate, capped);[cite: 1]
-  if(h.cadence==='monthly') return habitMonthlyAllTimeAvg(h, startDate, endDate, capped);[cite: 1]
-  return habitDailyRangeAvg(h, startDate, endDate, capped);[cite: 1]
-}
-
+/* ---------------------------------------------------------------
+   Углублённая аналитика для вкладок «Неделя» и «Месяц»:
+   средний результат, лучший результат за всю историю (по привычке
+   и по всему плану), сравнение с предыдущим периодом.
+   ------------------------------------------------------------- */
 function trackingStartDate(){
-  const allDates = Object.keys(state.entries).map(k=>k.split('|')[1]).filter(Boolean);[cite: 1]
-  if(!allDates.length) return startOfWeek(new Date());[cite: 1]
-  const minIso = allDates.reduce((a,b)=>a<b?a:b);[cite: 1]
-  return parseISO(minIso);[cite: 1]
+  const allDates = Object.keys(state.entries).map(k=>k.split('|')[1]).filter(Boolean);
+  if(!allDates.length) return startOfWeek(new Date());
+  const minIso = allDates.reduce((a,b)=>a<b?a:b);
+  return parseISO(minIso);
 }
-
+// Результат ВСЕГО ПЛАНА (среднее по активным привычкам) за конкретную неделю/месяц.
 function planScoreForWeek(ws){
-  const scores = state.habits.filter(h=>h.active).map(h=>habitScoreForWeek(h,ws,true)).filter(v=>v!==null);[cite: 1]
-  return scores.length ? Math.min(100, Math.round(scores.reduce((a,b)=>a+b,0)/scores.length)) : null;
+  const scores = state.habits.filter(h=>h.active).map(h=>habitScoreForWeek(h,ws)).filter(v=>v!==null);
+  return scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : null;
 }
 function planScoreForMonth(y,m){
-  const scores = state.habits.filter(h=>h.active).map(h=>habitScoreForMonth(h,y,m,true)).filter(v=>v!==null);[cite: 1]
-  return scores.length ? Math.min(100, Math.round(scores.reduce((a,b)=>a+b,0)/scores.length)) : null;
+  const scores = state.habits.filter(h=>h.active).map(h=>habitScoreForMonth(h,y,m)).filter(v=>v!==null);
+  return scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : null;
 }
-
+// Лучшая неделя/месяц за всю историю — и по всему плану, и по отдельной привычке.
 function bestWeekEver(){
-  let ws = startOfWeek(trackingStartDate()); const end = new Date();[cite: 1]
-  let best=null, bestStart=null;[cite: 1]
-  while(ws<=end){ 
-    const v=planScoreForWeek(ws);[cite: 1]
-    if(v!==null && (best===null||v>best)){ best=v; bestStart=new Date(ws); }[cite: 1]
-    ws=addDays(ws,7);[cite: 1]
-  }
-  return {score:best, start:bestStart};[cite: 1]
+  let ws = startOfWeek(trackingStartDate()); const end = new Date();
+  let best=null, bestStart=null;
+  while(ws<=end){ const v=planScoreForWeek(ws); if(v!==null && (best===null||v>best)){ best=v; bestStart=new Date(ws); } ws=addDays(ws,7); }
+  return {score:best, start:bestStart};
 }
 function bestMonthEver(){
-  const start = trackingStartDate(); const end = new Date();[cite: 1]
-  let mc = new Date(start.getFullYear(), start.getMonth(), 1); const endM = new Date(end.getFullYear(), end.getMonth(), 1);[cite: 1]
-  let best=null, bestM=null;[cite: 1]
-  while(mc<=endM){ 
-    const v=planScoreForMonth(mc.getFullYear(), mc.getMonth());[cite: 1]
-    if(v!==null && (best===null||v>best)){ best=v; bestM=new Date(mc); }[cite: 1]
-    mc=new Date(mc.getFullYear(), mc.getMonth()+1, 1);[cite: 1]
-  }
-  return {score:best, month:bestM};[cite: 1]
+  const start = trackingStartDate(); const end = new Date();
+  let mc = new Date(start.getFullYear(), start.getMonth(), 1); const endM = new Date(end.getFullYear(), end.getMonth(), 1);
+  let best=null, bestM=null;
+  while(mc<=endM){ const v=planScoreForMonth(mc.getFullYear(), mc.getMonth()); if(v!==null && (best===null||v>best)){ best=v; bestM=new Date(mc); } mc=new Date(mc.getFullYear(), mc.getMonth()+1, 1); }
+  return {score:best, month:bestM};
 }
-
-// Рекорд ограничен максимум 100%
 function bestWeekForHabit(h){
-  let ws = startOfWeek(trackingStartDate()); const end = new Date();[cite: 1]
-  let best=null;[cite: 1]
-  while(ws<=end){ 
-    const v=habitScoreForWeek(h,ws,true); 
-    if(v!==null && (best===null||v>best)) best=v; 
-    ws=addDays(ws,7);[cite: 1]
-  }
-  return best;[cite: 1]
+  let ws = startOfWeek(trackingStartDate()); const end = new Date();
+  let best=null;
+  while(ws<=end){ const v=habitScoreForWeek(h,ws); if(v!==null && (best===null||v>best)) best=v; ws=addDays(ws,7); }
+  return best;
 }
 function bestMonthForHabit(h){
-  const start = trackingStartDate(); const end = new Date();[cite: 1]
-  let mc = new Date(start.getFullYear(), start.getMonth(), 1); const endM = new Date(end.getFullYear(), end.getMonth(), 1);[cite: 1]
-  let best=null;[cite: 1]
-  while(mc<=endM){ 
-    const v=habitScoreForMonth(h, mc.getFullYear(), mc.getMonth(), true); 
-    if(v!==null && (best===null||v>best)) best=v; 
-    mc=new Date(mc.getFullYear(), mc.getMonth()+1, 1);[cite: 1]
-  }
-  return best;[cite: 1]
+  const start = trackingStartDate(); const end = new Date();
+  let mc = new Date(start.getFullYear(), start.getMonth(), 1); const endM = new Date(end.getFullYear(), end.getMonth(), 1);
+  let best=null;
+  while(mc<=endM){ const v=habitScoreForMonth(h, mc.getFullYear(), mc.getMonth()); if(v!==null && (best===null||v>best)) best=v; mc=new Date(mc.getFullYear(), mc.getMonth()+1, 1); }
+  return best;
 }
-
 function trendArrow(delta){
-  if(delta===null) return `<span style="color:var(--muted);">—</span>`;[cite: 1]
-  if(delta===0) return `<span style="color:var(--muted);">± 0%</span>`;[cite: 1]
-  const up = delta>0;[cite: 1]
-  return `<span style="color:${up?'var(--accent)':'var(--danger)'};">${up?'▲':'▼'} ${up?'+':''}${delta}%</span>`;[cite: 1]
+  if(delta===null) return `<span style="color:var(--muted);">—</span>`;
+  if(delta===0) return `<span style="color:var(--muted);">± 0%</span>`;
+  const up = delta>0;
+  return `<span style="color:${up?'var(--accent)':'var(--danger)'};">${up?'▲':'▼'} ${up?'+':''}${delta}%</span>`;
 }
-
 /* =========================================================
    РЕНДЕР: ROOT
    ========================================================= */
 function render(){
-  setActiveNav();[cite: 1]
-  const map = {today:renderToday, week:renderWeek, month:renderMonth, alltime:renderAllTime, habits:renderHabits, strategy:renderStrategy};[cite: 1]
-  (map[currentView]||renderToday)();[cite: 1]
+  setActiveNav();
+  const map = {today:renderToday, week:renderWeek, month:renderMonth, alltime:renderAllTime, habits:renderHabits, strategy:renderStrategy};
+  (map[currentView]||renderToday)();
 }
 
 function setTop(eyebrow,title,desc,actionsHTML){
-  document.getElementById('topEyebrow').textContent=eyebrow;[cite: 1]
-  document.getElementById('topTitle').textContent=title;[cite: 1]
-  document.getElementById('topDesc').textContent=desc;[cite: 1]
-  document.getElementById('topActions').innerHTML = actionsHTML||'';[cite: 1]
+  document.getElementById('topEyebrow').textContent=eyebrow;
+  document.getElementById('topTitle').textContent=title;
+  document.getElementById('topDesc').textContent=desc;
+  document.getElementById('topActions').innerHTML = actionsHTML||'';
 }
 
 /* =========================================================
-   ВИД: СЕГОДНЯ (ЕЖЕДНЕВНЫЙ УЧЕТ С НАВИГАЦИЕЙ ПО ДНЯМ)
+   ВИД: СЕГОДНЯ
    ========================================================= */
 function renderToday(){
-  const d = todayCursor;
-  const iso = toISO(d);
-  const isActualToday = iso === todayISO();
+  const d = new Date();
+  const iso = todayISO();
+  setTop('Ежедневный учёт','Сегодня, '+DOW_FULL[(d.getDay()+6)%7].toLowerCase()+', '+fmtDate(iso),'Отмечайте выполнение привычек по категориям');
+  const c = document.getElementById('content');
+  let html = '';
 
-  setTop(
-    'Ежедневный учёт',
-    (isActualToday ? 'Сегодня, ' : '') + DOW_FULL[(d.getDay()+6)%7].toLowerCase() + ', ' + fmtDate(iso),
-    'Отмечайте выполнение привычек по категориям'
-  );
-
-  document.getElementById('topActions').innerHTML = `
-    <div class="pill-switch">
-      <button onclick="todayCursor=addDays(todayCursor,-1);render();">← Пред. день</button>
-      <button class="${isActualToday?'active':''}" onclick="todayCursor=new Date();render();">Сегодня</button>
-      <button onclick="todayCursor=addDays(todayCursor,1);render();">След. день →</button>
-    </div>
-  `;
-
-  const c = document.getElementById('content');[cite: 1]
-  let html = '';[cite: 1]
-
-  const needing = habitsNeedingAssignment(d);[cite: 1]
+  const needing = habitsNeedingAssignment(d);
   if(needing.length){
-    html += `<div class="banner"><div><strong>Нужно выбрать дни выполнения</strong><p>Для ${needing.length} привыч${needing.length===1?'ки':'ек'} с гибким графиком не назначены дни на текущий период.</p></div><button class="btn btn-primary btn-sm" onclick="openAssignModal()">Назначить дни</button></div>`;[cite: 1]
+    html += `<div class="banner"><div><strong>Нужно выбрать дни выполнения</strong><p>Для ${needing.length} привыч${needing.length===1?'ки':'ек'} с гибким графиком не назначены дни на текущий период.</p></div><button class="btn btn-primary btn-sm" onclick="openAssignModal()">Назначить дни</button></div>`;
   }
 
-  const activeHabits = state.habits.filter(h=>h.active);[cite: 1]
-  const scheduledToday = activeHabits.filter(h=>isHabitScheduledOn(h,d));[cite: 1]
-  
-  const completionValues = scheduledToday.map(h => habitDayValue(h, iso, true)).filter(v => v !== null);
-  const completion = completionValues.length ? Math.min(100, Math.round(completionValues.reduce((a,b)=>a+b,0) / completionValues.length)) : 0;
+  const activeHabits = state.habits.filter(h=>h.active);
+  const scheduledToday = activeHabits.filter(h=>isHabitScheduledOn(h,d));
+  const completion = scheduledToday.length ? Math.round(scheduledToday.reduce((s,h)=>s+(habitDayValue(h,iso)||0),0)/scheduledToday.length) : 0;
 
   html += `<div class="grid cols-3" style="margin-bottom:26px;">
-    <div class="stat"><div class="label">Запланировано на день</div><div class="value">${scheduledToday.length}</div><div class="sub">из ${activeHabits.length} активных привычек</div></div>
-    <div class="stat"><div class="label">Средний прогресс дня</div><div class="value">${completion}%</div><div class="sub">по заполненным привычкам (макс 100%)</div></div>
+    <div class="stat"><div class="label">Запланировано сегодня</div><div class="value">${scheduledToday.length}</div><div class="sub">из ${activeHabits.length} активных привычек</div></div>
+    <div class="stat"><div class="label">Средний прогресс дня</div><div class="value">${completion}%</div><div class="sub">по всем сегодняшним привычкам</div></div>
     <div class="stat"><div class="label">Категорий в работе</div><div class="value">${new Set(scheduledToday.map(h=>h.categoryId)).size}</div><div class="sub">из ${state.categories.length} всего</div></div>
-  </div>`;[cite: 1]
+  </div>`;
 
   if(!activeHabits.length){
-    html += emptyState('Пока нет привычек','Добавьте первую привычку на вкладке «Привычки и категории».','habits');[cite: 1]
-    html += `<div style="text-align:center;margin-top:-10px;"><button class="btn" onclick="loadExampleData()">Заполнить примером данных</button></div>`;[cite: 1]
+    html += emptyState('Пока нет привычек','Добавьте первую привычку на вкладке «Привычки и категории».','habits');
+    html += `<div style="text-align:center;margin-top:-10px;"><button class="btn" onclick="loadExampleData()">Заполнить примером данных</button></div>`;
   } else {
     state.categories.forEach(cat=>{
-      const hs = scheduledToday.filter(h=>h.categoryId===cat.id);[cite: 1]
-      const allInCat = activeHabits.filter(h=>h.categoryId===cat.id);[cite: 1]
-      if(!allInCat.length) return;[cite: 1]
-      html += `<div class="cat-block"><div class="cat-head"><span class="cat-dot" style="background:${cat.color}"></span><h3>${cat.name}</h3><span class="cat-count">${hs.length}/${allInCat.length} на дату</span></div>`;[cite: 1]
+      const hs = scheduledToday.filter(h=>h.categoryId===cat.id);
+      const allInCat = activeHabits.filter(h=>h.categoryId===cat.id);
+      if(!allInCat.length) return;
+      html += `<div class="cat-block"><div class="cat-head"><span class="cat-dot" style="background:${cat.color}"></span><h3>${cat.name}</h3><span class="cat-count">${hs.length}/${allInCat.length} сегодня</span></div>`;
       if(!hs.length){
-        html += `<div style="font-size:12px;color:var(--muted);padding:4px 2px 8px 2px;">На этот день по данной категории ничего не запланировано.</div>`;
+        html += `<div style="font-size:12px;color:var(--muted);padding:4px 2px 8px 2px;">Сегодня по этой категории привычек не запланировано.</div>`;
       }
-      hs.forEach(h=> html += habitRowToday(h, iso));[cite: 1]
-      html += `</div>`;[cite: 1]
+      hs.forEach(h=> html += habitRowToday(h, iso));
+      html += `</div>`;
     });
   }
-  c.innerHTML = html;[cite: 1]
+  c.innerHTML = html;
 }
 
 function habitRowToday(h, iso){
-  const cadgeLabel = h.cadence==='daily' ? 'Ежедневно' : h.cadence==='weekly' ? `${h.freq}×/неделю` : `${h.freq}×/месяц`;[cite: 1]
-  const stepVal = h.step || 1;
-  let controls = '';[cite: 1]
-
+  const cadgeLabel = h.cadence==='daily' ? 'Ежедневно' : h.cadence==='weekly' ? `${h.freq}×/неделю` : `${h.freq}×/месяц`;
+  let controls = '';
   if(h.trackingType==='percentage' && h.segments && h.segments.length){
-    let total=0;[cite: 1]
+    let total=0;
     const segInputs = h.segments.map(s=>{
-      const v = getEntry(h.id,iso,s) || 0; total += v;[cite: 1]
+      const v = getEntry(h.id,iso,s) || 0; total += v;
       return `<div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
-        <div class="stepper">
-          <button class="stepper-btn" onclick="adjustEntry('${h.id}','${iso}','${s}',-${stepVal})">▼</button>
-          <input type="number" min="0" value="${v}" onchange="onSegPctChange('${h.id}','${iso}','${s}',this.value)">
-          <button class="stepper-btn" onclick="adjustEntry('${h.id}','${iso}','${s}',${stepVal})">▲</button>
-        </div>
+        <input class="pct-input" style="width:56px;" type="number" min="0" value="${v}" onchange="onSegPctChange('${h.id}','${iso}','${s}',this.value)">
         <span style="font-size:9px;color:var(--muted);text-align:center;white-space:nowrap;">${s}</span>
       </div>`;
-    }).join('');[cite: 1]
-    const pct = Math.max(0, Math.round(total/h.target*100));
+    }).join('');
+    const pct = Math.max(0,Math.min(100, Math.round(total/h.target*100)));
     controls = `<div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
-      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;">${segInputs}</div>
-      <span class="tag mono">Итого: ${total}/${h.target} ${h.unit} · <strong>${pct}%</strong></span>
+      <div style="display:flex;gap:10px;">${segInputs}</div>
+      <span class="tag mono">Итого: ${total}/${h.target} ${h.unit} · ${pct}%</span>
     </div>`;
   } else if(h.trackingType==='percentage'){
-    const v = getEntry(h.id, iso, null) || 0;[cite: 1]
-    const pct = Math.max(0, Math.round((v/h.target)*100));
-    const barPct = Math.min(100, pct);
+    const v = getEntry(h.id, iso, null) || 0;
+    const pct = Math.max(0,Math.min(100, Math.round((v/h.target)*100)));
     controls = `<div class="pct-wrap">
-      <div class="stepper">
-        <button class="stepper-btn" onclick="adjustEntry('${h.id}','${iso}',null,-${stepVal})">▼</button>
-        <input type="number" min="0" value="${v}" onchange="onPctChange('${h.id}','${iso}',this.value)">
-        <button class="stepper-btn" onclick="adjustEntry('${h.id}','${iso}',null,${stepVal})">▲</button>
-      </div>
-      <div class="pct-bar"><div class="pct-bar-fill" style="width:${barPct}%"></div></div>
-      <span class="tag mono" style="min-width:48px;text-align:center;">${pct}%</span>
+      <input class="pct-input" type="number" min="0" value="${v}" onchange="onPctChange('${h.id}','${iso}',this.value)">
+      <div class="pct-bar"><div class="pct-bar-fill" style="width:${pct}%"></div></div>
+      <span class="tag mono">${pct}%</span>
     </div>`;
   } else if(h.segments && h.segments.length){
-    controls = `<div class="habit-controls">` + h.segments.map(s=>{[cite: 1]
-      const done = getEntry(h.id,iso,s)===true;[cite: 1]
-      return `<div style="position:relative;margin-bottom:6px;"><button class="seg-toggle ${done?'done':''}" onclick="onSegToggle('${h.id}','${iso}','${s}')">${done?'✓':''}</button><span class="seg-label">${s}</span></div>`;[cite: 1]
-    }).join('') + `</div>`;[cite: 1]
+    controls = `<div class="habit-controls">` + h.segments.map(s=>{
+      const done = getEntry(h.id,iso,s)===true;
+      return `<div style="position:relative;margin-bottom:6px;"><button class="seg-toggle ${done?'done':''}" onclick="onSegToggle('${h.id}','${iso}','${s}')">${done?'✓':''}</button><span class="seg-label">${s}</span></div>`;
+    }).join('') + `</div>`;
   } else {
-    const done = getEntry(h.id,iso,null)===true;[cite: 1]
-    controls = `<button class="seg-toggle ${done?'done':''}" onclick="onSegToggle('${h.id}','${iso}',null)" style="width:42px;height:42px;font-size:17px;">${done?'✓':''}</button>`;[cite: 1]
+    const done = getEntry(h.id,iso,null)===true;
+    controls = `<button class="seg-toggle ${done?'done':''}" onclick="onSegToggle('${h.id}','${iso}',null)" style="width:42px;height:42px;font-size:17px;">${done?'✓':''}</button>`;
   }
   return `<div class="habit-row">
     <div class="habit-info">
       <div class="habit-name">${h.name}</div>
       ${h.description?`<div class="habit-desc">${h.description}</div>`:''}
-      <div class="habit-meta"><span class="tag">${cadgeLabel}</span>${h.trackingType==='percentage'?`<span class="tag">Цель: ${h.target} ${h.unit} (шаг: ±${stepVal})</span>`:''}${h.cadence!=='daily'?`<span class="tag" style="cursor:pointer;border-color:var(--accent);color:var(--accent);" onclick="openRescheduleModal('${h.id}')">↻ перенести день</span>`:''}</div>
+      <div class="habit-meta"><span class="tag">${cadgeLabel}</span>${h.trackingType==='percentage'?`<span class="tag">Цель: ${h.target} ${h.unit}</span>`:''}${h.cadence!=='daily'?`<span class="tag" style="cursor:pointer;border-color:var(--accent);color:var(--accent);" onclick="openRescheduleModal('${h.id}')">↻ перенести день</span>`:''}</div>
     </div>
     ${controls}
-  </div>`;[cite: 1]
-}
-
-function adjustEntry(habitId, iso, seg, delta){
-  const cur = getEntry(habitId, iso, seg) || 0;
-  const next = Math.max(0, Number(cur) + delta);
-  setEntry(habitId, iso, seg, next);
-  render();
+  </div>`;
 }
 
 function onSegPctChange(habitId, iso, seg, val){
-  const n = Math.max(0, Number(val)||0);[cite: 1]
-  setEntry(habitId, iso, seg, n);[cite: 1]
-  render();[cite: 1]
+  const n = Math.max(0, Number(val)||0);
+  setEntry(habitId, iso, seg, n);
+  render();
 }
 
 function onSegToggle(habitId, iso, seg){
-  const cur = getEntry(habitId, iso, seg);[cite: 1]
-  setEntry(habitId, iso, seg, cur===true ? false : true);[cite: 1]
-  render();[cite: 1]
+  const cur = getEntry(habitId, iso, seg);
+  setEntry(habitId, iso, seg, cur===true ? false : true);
+  render();
 }
 function onPctChange(habitId, iso, val){
-  const n = Math.max(0, Number(val)||0);[cite: 1]
-  setEntry(habitId, iso, null, n);[cite: 1]
-  render();[cite: 1]
+  const n = Math.max(0, Number(val)||0);
+  setEntry(habitId, iso, null, n);
+  render();
 }
 
 function emptyState(title, text, gotoView){
-  return `<div class="card empty"><h3>${title}</h3><p>${text}</p><button class="btn btn-primary btn-sm" onclick="currentView='${gotoView}';render();">Перейти</button></div>`;[cite: 1]
+  return `<div class="card empty"><h3>${title}</h3><p>${text}</p><button class="btn btn-primary btn-sm" onclick="currentView='${gotoView}';render();">Перейти</button></div>`;
 }
 
 /* =========================================================
-   ВИД: НЕДЕЛЯ (НЕДЕЛЬНАЯ СТАТИСТИКА И ТАБЛИЦА)
+   ВИД: НЕДЕЛЯ
    ========================================================= */
 function renderWeek(){
-  const ws = startOfWeek(weekCursor);[cite: 1]
-  const we = addDays(ws,6);[cite: 1]
-  const wk = weekKeyOf(weekCursor);[cite: 1]
-  const isCurrentWeek = wk===weekKeyOf(new Date());[cite: 1]
-  setTop('Учёт по неделе', fmtShort(ws)+' — '+fmtShort(we)+', '+ws.getFullYear(),'Прогресс и график за выбранную неделю','');[cite: 1]
+  const ws = startOfWeek(weekCursor);
+  const we = addDays(ws,6);
+  const wk = weekKeyOf(weekCursor);
+  const isCurrentWeek = wk===weekKeyOf(new Date());
+  setTop('Учёт по неделе', fmtShort(ws)+' — '+fmtShort(we)+', '+ws.getFullYear(),'Прогресс и график за выбранную неделю','');
   document.getElementById('topActions').innerHTML = `<div class="pill-switch">
       <button onclick="weekCursor=addDays(weekCursor,-7);render();">← Пред. неделя</button>
       <button class="${isCurrentWeek?'active':''}" onclick="weekCursor=new Date();render();">Текущая</button>
       <button onclick="weekCursor=addDays(weekCursor,7);render();">След. неделя →</button>
-    </div>`;[cite: 1]
-  const c = document.getElementById('content');[cite: 1]
-  let html='';[cite: 1]
+    </div>`;
+  const c = document.getElementById('content');
+  let html='';
 
-  const needing = habitsNeedingAssignment(ws).filter(h=>h.cadence==='weekly');[cite: 1]
+  const needing = habitsNeedingAssignment(ws).filter(h=>h.cadence==='weekly');
   if(needing.length){
-    html += `<div class="banner"><div><strong>Выберите дни для этой недели</strong><p>${needing.map(h=>h.name).join(', ')} — дни ещё не назначены.</p></div><button class="btn btn-primary btn-sm" onclick="openAssignModal()">Назначить</button></div>`;[cite: 1]
+    html += `<div class="banner"><div><strong>Выберите дни для этой недели</strong><p>${needing.map(h=>h.name).join(', ')} — дни ещё не назначены.</p></div><button class="btn btn-primary btn-sm" onclick="openAssignModal()">Назначить</button></div>`;
   }
 
-  const activeHabits = state.habits.filter(h=>h.active);[cite: 1]
+  const activeHabits = state.habits.filter(h=>h.active);
 
-  const thisWeekScore = planScoreForWeek(ws);[cite: 1]
-  const prevWeekScore = planScoreForWeek(addDays(ws,-7));[cite: 1]
-  const delta = (thisWeekScore!==null && prevWeekScore!==null) ? thisWeekScore-prevWeekScore : null;[cite: 1]
-  const best = bestWeekEver();[cite: 1]
-  const isBestWeek = best.score!==null && thisWeekScore!==null && best.start && weekKeyOf(best.start)===wk;[cite: 1]
+  // -------- сводные показатели недели (по всему плану) --------
+  const thisWeekScore = planScoreForWeek(ws);
+  const prevWeekScore = planScoreForWeek(addDays(ws,-7));
+  const delta = (thisWeekScore!==null && prevWeekScore!==null) ? thisWeekScore-prevWeekScore : null;
+  const best = bestWeekEver();
+  const isBestWeek = best.score!==null && thisWeekScore!==null && best.start && weekKeyOf(best.start)===wk;
 
   html += `<div class="grid cols-4" style="margin-bottom:22px;">
-    <div class="stat"><div class="label">Средний результат недели</div><div class="value">${thisWeekScore===null?'—':thisWeekScore+'%'}</div><div class="sub">по всем активным привычкам (макс 100%)</div></div>
+    <div class="stat"><div class="label">Средний результат недели</div><div class="value">${thisWeekScore===null?'—':thisWeekScore+'%'}</div><div class="sub">по всем активным привычкам</div></div>
     <div class="stat"><div class="label">К прошлой неделе</div><div class="value" style="font-size:20px;">${trendArrow(delta)}</div><div class="sub">${prevWeekScore===null?'нет данных за пред. неделю':'пред. неделя: '+prevWeekScore+'%'}</div></div>
     <div class="stat"><div class="label">Лучшая неделя за всё время</div><div class="value">${best.score===null?'—':best.score+'%'}</div><div class="sub">${isBestWeek?'это текущая неделя 🏆':(best.start?fmtShort(best.start)+' — '+fmtShort(addDays(best.start,6)):'—')}</div></div>
     <div class="stat"><div class="label">Активных привычек</div><div class="value">${activeHabits.length}</div><div class="sub">учитывается на этой неделе</div></div>
-  </div>`;[cite: 1]
+  </div>`;
 
-  html += `<div class="card" style="margin-bottom:22px;overflow-x:auto;"><table><thead><tr><th style="min-width:170px;">Привычка</th>`;[cite: 1]
-  for(let i=0;i<7;i++){ const d=addDays(ws,i); html+=`<th class="week-cell">${DOW[i]}<br><span class="mono" style="font-weight:400;">${d.getDate()}</span></th>`; }[cite: 1]
-  html += `<th class="week-cell">Итог</th><th class="week-cell">Рекорд</th></tr></thead><tbody>`;[cite: 1]
-  
+  // таблица по дням
+  html += `<div class="card" style="margin-bottom:22px;overflow-x:auto;"><table><thead><tr><th style="min-width:170px;">Привычка</th>`;
+  for(let i=0;i<7;i++){ const d=addDays(ws,i); html+=`<th class="week-cell">${DOW[i]}<br><span class="mono" style="font-weight:400;">${d.getDate()}</span></th>`; }
+  html += `<th class="week-cell">Итог</th><th class="week-cell">Рекорд</th></tr></thead><tbody>`;
   activeHabits.forEach(h=>{
-    html += `<tr><td><strong>${h.name}</strong>${h.cadence!=='daily'?`<div style="font-size:10.5px;color:var(--muted);margin-top:2px;">норма: ${h.freq}${h.cadence==='weekly'?'×/нед.':'×/мес.'}</div>`:''}</td>`;[cite: 1]
+    html += `<tr><td><strong>${h.name}</strong>${h.cadence!=='daily'?`<div style="font-size:10.5px;color:var(--muted);margin-top:2px;">норма: ${h.freq}${h.cadence==='weekly'?'×/нед.':'×/мес.'}</div>`:''}</td>`;
     for(let i=0;i<7;i++){
-      const d=addDays(ws,i); const iso=toISO(d); const future = d> endOfToday();[cite: 1]
-      const scheduled = isHabitScheduledOn(h,d);[cite: 1]
-      if(!scheduled){ html+=`<td class="week-cell">–</td>`; continue; }[cite: 1]
-      
-      const realVal = habitDayValue(h,iso,false);
+      const d=addDays(ws,i); const iso=toISO(d); const future = d> endOfToday();
+      const scheduled = isHabitScheduledOn(h,d);
+      if(!scheduled){ html+=`<td class="week-cell">–</td>`; continue; }
+      const val = habitDayValue(h,iso);
       const clickable = !future;
-      let innerHTML = '';
-      let styleAttr = '';
-      let cls = '';
-
-      const hasSegs = h.segments && h.segments.length > 0;
-
-      if(h.trackingType==='percentage'){
-        if(realVal!==null){
-          const fillPct = Math.min(100, Math.max(0, realVal));
-          if(fillPct >= 100){
-            cls = 'done';
-            innerHTML = realVal + '%';
-          } else if(fillPct > 0){
-            styleAttr = `style="background: linear-gradient(to top, var(--accent) ${fillPct}%, var(--surface) ${fillPct}%); color: ${fillPct>55?'#fff':'var(--text)'}; font-weight:600; font-size:10px;"`;
-            innerHTML = realVal + '%';
-          } else {
-            styleAttr = `style="font-size:10px;"`;
-            innerHTML = '0%';
-          }
-        }
-      } else {
-        if(hasSegs){
-          if(realVal!==null){
-            const fillPct = Math.min(100, Math.max(0, realVal));
-            if(fillPct >= 100){
-              cls = 'done';
-              innerHTML = '✓';
-            } else if(fillPct > 0){
-              innerHTML = `<span class="partial-check-wrapper"><span class="check-bg">✓</span><span class="check-fg" style="width:${fillPct}%;">✓</span></span>`;
-            }
-          }
-        } else {
-          if(realVal===100){
-            cls = 'done';
-            innerHTML = '✓';
-          }
-        }
-      }
-
-      html += `<td class="week-cell"><span class="day-check ${cls} ${future?'future':''}" ${styleAttr} ${clickable?`onclick="quickDayToggle('${h.id}','${iso}')"`:''}>${innerHTML}</span></td>`;
+      const cls = val===100?'done':'';
+      const label = val===null?'':(h.trackingType==='percentage'?val+'%':(val===100?'✓':''));
+      html += `<td class="week-cell"><span class="day-check ${cls} ${future?'future':''}" ${clickable?`onclick="quickDayToggle('${h.id}','${iso}')"`:''} style="${h.trackingType==='percentage'?'font-size:9px;':''}">${label}</span></td>`;
     }
-    
-    // Итог и Рекорд ограничены максимум 100%
-    const summaryVal = h.cadence==='weekly' ? habitWeekCompletion(h, ws, true) : habitScoreForWeek(h, ws, true);
+    // Итог: для weekly-привычек — доля от нормы (freq) за эту неделю, а не среднее по отмеченным дням.
+    let summaryVal;
+    if(h.cadence==='weekly'){
+      summaryVal = habitWeekCompletion(h, ws);
+    } else {
+      let sum=0,cnt=0;
+      for(let i=0;i<7;i++){ const d=addDays(ws,i); if(!isHabitScheduledOn(h,d)) continue; const val=habitDayValue(h,toISO(d)); cnt++; if(val!==null) sum+=val; }
+      summaryVal = cnt ? Math.round(sum/cnt) : null;
+    }
     const habitBest = bestWeekForHabit(h);
     html += `<td class="week-cell mono"><strong>${summaryVal===null?'—':summaryVal+'%'}</strong></td><td class="week-cell mono" style="color:var(--muted);">${habitBest===null?'—':habitBest+'%'}</td></tr>`;
   });
-  html += `</tbody></table></div>`;[cite: 1]
+  html += `</tbody></table></div>`;
 
-  html += `<div class="chart-box" style="margin-bottom:22px;"><h4>Выполнение по категориям за неделю</h4><canvas id="weekChart" height="90"></canvas></div>`;[cite: 1]
-  c.innerHTML = html;[cite: 1]
+  // график по категориям (среднее по привычкам категории, каждая привычка — со своим корректным показателем)
+  html += `<div class="chart-box" style="margin-bottom:22px;"><h4>Выполнение по категориям за неделю</h4><canvas id="weekChart" height="90"></canvas></div>`;
+  c.innerHTML = html;
 
-  const catLabels = state.categories.map(c=>c.name);[cite: 1]
+  const catLabels = state.categories.map(c=>c.name);
   const catData = state.categories.map(cat=>{
-    const hs = activeHabits.filter(h=>h.categoryId===cat.id);[cite: 1]
-    const scores = hs.map(h=>habitScoreForWeek(h,ws,true)).filter(v=>v!==null);[cite: 1]
-    return scores.length ? Math.min(100, Math.round(scores.reduce((a,b)=>a+b,0)/scores.length)) : 0;
+    const hs = activeHabits.filter(h=>h.categoryId===cat.id);
+    const scores = hs.map(h=>habitScoreForWeek(h,ws)).filter(v=>v!==null);
+    return scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : 0;
   });
-  drawBarChart('weekChart', catLabels, catData, state.categories.map(c=>c.color));[cite: 1]
+  drawBarChart('weekChart', catLabels, catData, state.categories.map(c=>c.color));
 }
 
 function quickDayToggle(habitId, iso){
-  const h = state.habits.find(x=>x.id===habitId);[cite: 1]
+  const h = state.habits.find(x=>x.id===habitId);
   if(h.trackingType==='percentage' && h.segments && h.segments.length){
-    toast('У привычки несколько частей дня — отметьте её на вкладке «Сегодня»');[cite: 1]
-    return;[cite: 1]
+    toast('У привычки несколько частей дня — отметьте её на вкладке «Сегодня»');
+    return;
   } else if(h.trackingType==='percentage'){
-    const cur = getEntry(habitId,iso,null) || 0;[cite: 1]
-    const val = prompt('Введите значение ('+h.unit+'), цель — '+h.target+':', cur);[cite: 1]
-    if(val===null) return;[cite: 1]
-    setEntry(habitId,iso,null, Math.max(0,Number(val)||0));[cite: 1]
+    const cur = getEntry(habitId,iso,null) || 0;
+    const val = prompt('Введите значение ('+h.unit+'), цель — '+h.target+':', cur);
+    if(val===null) return;
+    setEntry(habitId,iso,null, Math.max(0,Number(val)||0));
   } else if(h.segments && h.segments.length){
-    toast('У привычки несколько частей дня — отметьте её на вкладке «Сегодня»');[cite: 1]
-    return;[cite: 1]
+    toast('У привычки несколько частей дня — отметьте её на вкладке «Сегодня»');
+    return;
   } else {
-    const cur = getEntry(habitId,iso,null);[cite: 1]
-    setEntry(habitId,iso,null, cur===true?false:true);[cite: 1]
+    const cur = getEntry(habitId,iso,null);
+    setEntry(habitId,iso,null, cur===true?false:true);
   }
-  render();[cite: 1]
+  render();
 }
 
 /* =========================================================
    ВИД: МЕСЯЦ
    ========================================================= */
 function renderMonth(){
-  const y=monthCursor.getFullYear(), m=monthCursor.getMonth();[cite: 1]
-  const mk = monthKeyOf(monthCursor);[cite: 1]
-  const isCurrentMonth = mk===monthKeyOf(new Date());[cite: 1]
-  setTop('Учёт по месяцу', MONTHS[m]+' '+y,'Показатели и график автоматически пересчитываются для выбранного месяца','');[cite: 1]
+  const y=monthCursor.getFullYear(), m=monthCursor.getMonth();
+  const mk = monthKeyOf(monthCursor);
+  const isCurrentMonth = mk===monthKeyOf(new Date());
+  setTop('Учёт по месяцу', MONTHS[m]+' '+y,'Показатели и график автоматически пересчитываются для выбранного месяца','');
   document.getElementById('topActions').innerHTML = `<div class="pill-switch">
       <button onclick="monthCursor=new Date(${y},${m-1},1);render();">← Пред. месяц</button>
       <button class="${isCurrentMonth?'active':''}" onclick="monthCursor=new Date();render();">Текущий</button>
       <button onclick="monthCursor=new Date(${y},${m+1},1);render();">След. месяц →</button>
-    </div>`;[cite: 1]
+    </div>`;
 
-  const c = document.getElementById('content');[cite: 1]
-  let html='';[cite: 1]
+  const c = document.getElementById('content');
+  let html='';
 
-  const needing = habitsNeedingAssignment(new Date(y,m,1)).filter(h=>h.cadence==='monthly');[cite: 1]
+  const needing = habitsNeedingAssignment(new Date(y,m,1)).filter(h=>h.cadence==='monthly');
   if(needing.length){
-    html += `<div class="banner"><div><strong>Выберите даты на этот месяц</strong><p>${needing.map(h=>h.name).join(', ')} — дни ещё не назначены.</p></div><button class="btn btn-primary btn-sm" onclick="openAssignModal()">Назначить</button></div>`;[cite: 1]
+    html += `<div class="banner"><div><strong>Выберите даты на этот месяц</strong><p>${needing.map(h=>h.name).join(', ')} — дни ещё не назначены.</p></div><button class="btn btn-primary btn-sm" onclick="openAssignModal()">Назначить</button></div>`;
   }
 
-  const activeHabits = state.habits.filter(h=>h.active);[cite: 1]
-  const nd = daysInMonth(y,m);[cite: 1]
+  const activeHabits = state.habits.filter(h=>h.active);
+  const nd = daysInMonth(y,m);
   const perHabit = activeHabits.map(h=>{
-    const score = habitScoreForMonth(h, y, m, true);
+    const score = habitScoreForMonth(h, y, m);
     return {h, avg: score, best: bestMonthForHabit(h)};
   });
-  const habitScores = perHabit.map(p=>p.avg).filter(v=>v!==null);[cite: 1]
-  const overallAvg = habitScores.length ? Math.min(100, Math.round(habitScores.reduce((a,b)=>a+b,0)/habitScores.length)) : null;
+  const habitScores = perHabit.map(p=>p.avg).filter(v=>v!==null);
+  const overallAvg = habitScores.length ? Math.round(habitScores.reduce((a,b)=>a+b,0)/habitScores.length) : null;
 
-  const prevMonthDate = new Date(y,m-1,1);[cite: 1]
-  const prevScore = planScoreForMonth(prevMonthDate.getFullYear(), prevMonthDate.getMonth());[cite: 1]
-  const delta = (overallAvg!==null && prevScore!==null) ? overallAvg-prevScore : null;[cite: 1]
-  const best = bestMonthEver();[cite: 1]
-  const isBestMonth = best.score!==null && overallAvg!==null && best.month && monthKeyOf(best.month)===mk;[cite: 1]
+  const prevMonthDate = new Date(y,m-1,1);
+  const prevScore = planScoreForMonth(prevMonthDate.getFullYear(), prevMonthDate.getMonth());
+  const delta = (overallAvg!==null && prevScore!==null) ? overallAvg-prevScore : null;
+  const best = bestMonthEver();
+  const isBestMonth = best.score!==null && overallAvg!==null && best.month && monthKeyOf(best.month)===mk;
 
   html += `<div class="grid cols-4" style="margin-bottom:24px;">
-    <div class="stat"><div class="label">Средний результат месяца</div><div class="value">${overallAvg===null?'—':overallAvg+'%'}</div><div class="sub">среднее по всем привычкам (макс 100%)</div></div>
+    <div class="stat"><div class="label">Средний результат месяца</div><div class="value">${overallAvg===null?'—':overallAvg+'%'}</div><div class="sub">среднее по всем привычкам, с учётом нормы</div></div>
     <div class="stat"><div class="label">К прошлому месяцу</div><div class="value" style="font-size:20px;">${trendArrow(delta)}</div><div class="sub">${prevScore===null?'нет данных за пред. месяц':'пред. месяц: '+prevScore+'%'}</div></div>
     <div class="stat"><div class="label">Лучший месяц за всё время</div><div class="value">${best.score===null?'—':best.score+'%'}</div><div class="sub">${isBestMonth?'это текущий месяц 🏆':(best.month?MONTHS[best.month.getMonth()]+' '+best.month.getFullYear():'—')}</div></div>
     <div class="stat"><div class="label">Активных привычек</div><div class="value">${activeHabits.length}</div><div class="sub">${nd} дн. в ${MONTHS[m].toLowerCase()}е</div></div>
-  </div>`;[cite: 1]
+  </div>`;
 
   html += `<div class="grid cols-2" style="margin-bottom:22px;">
     <div class="chart-box"><h4>Прогресс по привычкам</h4><canvas id="monthChartHabits" height="160"></canvas></div>
     <div class="chart-box"><h4>Динамика по неделям месяца</h4><canvas id="monthChartWeeks" height="160"></canvas></div>
-  </div>`;[cite: 1]
+  </div>`;
 
-  html += `<div class="card"><table><thead><tr><th>Привычка</th><th>Категория</th><th>Норма</th><th>Результат за месяц</th><th>Рекорд (за всё время)</th></tr></thead><tbody>`;[cite: 1]
+  html += `<div class="card"><table><thead><tr><th>Привычка</th><th>Категория</th><th>Норма</th><th>Результат за месяц</th><th>Рекорд (за всё время)</th></tr></thead><tbody>`;
   perHabit.forEach(p=>{
-    const cat = state.categories.find(c=>c.id===p.h.categoryId);[cite: 1]
-    const norm = p.h.cadence==='daily' ? 'Ежедневно' : p.h.cadence==='weekly' ? p.h.freq+'×/неделю' : p.h.freq+'×/месяц';[cite: 1]
-    html += `<tr><td><strong>${p.h.name}</strong></td><td><span class="tag" style="border-color:${cat?cat.color:'#ccc'};color:${cat?cat.color:'#666'};">${cat?cat.name:'—'}</span></td><td class="mono" style="font-size:11.5px;">${norm}</td><td class="mono"><strong>${p.avg===null?'—':p.avg+'%'}</strong></td><td class="mono" style="color:var(--muted);">${p.best===null?'—':p.best+'%'}</td></tr>`;[cite: 1]
+    const cat = state.categories.find(c=>c.id===p.h.categoryId);
+    const norm = p.h.cadence==='daily' ? 'Ежедневно' : p.h.cadence==='weekly' ? p.h.freq+'×/неделю' : p.h.freq+'×/месяц';
+    html += `<tr><td><strong>${p.h.name}</strong></td><td><span class="tag" style="border-color:${cat?cat.color:'#ccc'};color:${cat?cat.color:'#666'};">${cat?cat.name:'—'}</span></td><td class="mono" style="font-size:11.5px;">${norm}</td><td class="mono"><strong>${p.avg===null?'—':p.avg+'%'}</strong></td><td class="mono" style="color:var(--muted);">${p.best===null?'—':p.best+'%'}</td></tr>`;
   });
-  html += `</tbody></table></div>`;[cite: 1]
-  c.innerHTML = html;[cite: 1]
+  html += `</tbody></table></div>`;
+  c.innerHTML = html;
 
-  drawBarChart('monthChartHabits', perHabit.map(p=>p.h.name), perHabit.map(p=>p.avg||0), activeHabits.map(h=>{const cat=state.categories.find(c=>c.id===h.categoryId); return cat?cat.color:'#999';}));[cite: 1]
+  drawBarChart('monthChartHabits', perHabit.map(p=>p.h.name), perHabit.map(p=>p.avg||0), activeHabits.map(h=>{const cat=state.categories.find(c=>c.id===h.categoryId); return cat?cat.color:'#999';}));
 
-  const weeksInMonth = [];[cite: 1]
-  let cursor = new Date(y,m,1);[cite: 1]
+  // недельная динамика внутри месяца — по каждой привычке считаем её корректный
+  // показатель за неделю (для weekly-привычек — доля от нормы), затем усредняем по привычкам.
+  const weeksInMonth = [];
+  let cursor = new Date(y,m,1);
   while(cursor.getMonth()===m){
-    const ws = startOfWeek(cursor);[cite: 1]
-    if(!weeksInMonth.find(w=>w.key===weekKeyOf(cursor))) weeksInMonth.push({key:weekKeyOf(cursor), start:new Date(ws), label:'Нед. '+(weeksInMonth.length+1)});[cite: 1]
-    cursor = addDays(cursor,7);[cite: 1]
+    const ws = startOfWeek(cursor);
+    if(!weeksInMonth.find(w=>w.key===weekKeyOf(cursor))) weeksInMonth.push({key:weekKeyOf(cursor), start:new Date(ws), label:'Нед. '+(weeksInMonth.length+1)});
+    cursor = addDays(cursor,7);
   }
   const weekAverages = weeksInMonth.map(w=>{
-    const scores = activeHabits.map(h=>habitScoreForWeek(h, w.start, true)).filter(v=>v!==null);
-    return scores.length ? Math.min(100, Math.round(scores.reduce((a,b)=>a+b,0)/scores.length)) : 0;
+    const scores = activeHabits.map(h=>habitScoreForWeek(h, w.start)).filter(v=>v!==null);
+    return scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : 0;
   });
-  drawLineChart('monthChartWeeks', weeksInMonth.map(w=>w.label), weekAverages);[cite: 1]
+  drawLineChart('monthChartWeeks', weeksInMonth.map(w=>w.label), weekAverages);
 }
 
 /* =========================================================
    ВИД: ИТОГИ ЗА ВЕСЬ ПЕРИОД
    ========================================================= */
 function renderAllTime(){
-  setTop('Сводная статистика','Итоги за весь период','Накопительная история по всем месяцам с момента старта');[cite: 1]
-  const c = document.getElementById('content');[cite: 1]
-  const activeHabits = state.habits.filter(h=>h.active);[cite: 1]
+  setTop('Сводная статистика','Итоги за весь период','Накопительная история по всем месяцам с момента старта');
+  const c = document.getElementById('content');
+  const activeHabits = state.habits.filter(h=>h.active);
 
-  const allDates = Object.keys(state.entries).map(k=>k.split('|')[1]).filter(Boolean);[cite: 1]
-  let minDate = allDates.length ? allDates.reduce((a,b)=>a<b?a:b) : todayISO();[cite: 1]
-  minDate = allDates.length ? minDate : todayISO();[cite: 1]
-  const start = parseISO(minDate);[cite: 1]
-  const end = new Date();[cite: 1]
+  // определить диапазон дат по записям
+  const allDates = Object.keys(state.entries).map(k=>k.split('|')[1]).filter(Boolean);
+  let minDate = allDates.length ? allDates.reduce((a,b)=>a<b?a:b) : todayISO();
+  minDate = allDates.length ? minDate : todayISO();
+  const start = parseISO(minDate);
+  const end = new Date();
 
-  let bestStreakOverall = 0;[cite: 1]
+  let bestStreakOverall = 0;
   const perHabit = activeHabits.map(h=>{
-    let running=0, bestStreak=0;[cite: 1]
-    let d = new Date(start);[cite: 1]
+    // «Лучшая серия» — подряд идущие выполненные сессии (по дням, когда привычка была назначена).
+    let running=0, bestStreak=0;
+    let d = new Date(start);
     while(d<=end){
-      const iso = toISO(d);
-      if(isHabitScheduledOn(h,d) && isDatePastOrFilled(iso)){
-        const v = habitDayValue(h, iso, true);
-        if(v===100){ running++; bestStreak=Math.max(bestStreak,running); }[cite: 1]
-        else if(v!==null) running=0;[cite: 1]
+      if(isHabitScheduledOn(h,d) && d<=endOfToday()){
+        const v = habitDayValue(h, toISO(d));
+        if(v===100){ running++; bestStreak=Math.max(bestStreak,running); } else if(v!==null || d<endOfToday()) running=0;
       }
-      d = addDays(d,1);[cite: 1]
+      d = addDays(d,1);
     }
-    bestStreakOverall = Math.max(bestStreakOverall, bestStreak);[cite: 1]
-    const avg = habitScoreAllTime(h, start, end, true);
-    return {h, avg, bestStreak};[cite: 1]
+    bestStreakOverall = Math.max(bestStreakOverall, bestStreak);
+    const avg = habitScoreAllTime(h, start, end);
+    return {h, avg, bestStreak};
   });
-  const habitScores = perHabit.map(p=>p.avg).filter(v=>v!==null);[cite: 1]
-  const overallAvg = habitScores.length ? Math.min(100, Math.round(habitScores.reduce((a,b)=>a+b,0)/habitScores.length)) : 0;
+  const habitScores = perHabit.map(p=>p.avg).filter(v=>v!==null);
+  const overallAvg = habitScores.length ? Math.round(habitScores.reduce((a,b)=>a+b,0)/habitScores.length) : 0;
 
-  const months = [];[cite: 1]
-  let mc = new Date(start.getFullYear(), start.getMonth(), 1);[cite: 1]
-  const endM = new Date(end.getFullYear(), end.getMonth(), 1);[cite: 1]
+  const months = [];
+  let mc = new Date(start.getFullYear(), start.getMonth(), 1);
+  const endM = new Date(end.getFullYear(), end.getMonth(), 1);
   while(mc<=endM){
-    months.push({y:mc.getFullYear(), m:mc.getMonth(), label:MONTHS[mc.getMonth()].slice(0,3)+' '+String(mc.getFullYear()).slice(2)});[cite: 1]
-    mc = new Date(mc.getFullYear(), mc.getMonth()+1, 1);[cite: 1]
+    months.push({y:mc.getFullYear(), m:mc.getMonth(), label:MONTHS[mc.getMonth()].slice(0,3)+' '+String(mc.getFullYear()).slice(2)});
+    mc = new Date(mc.getFullYear(), mc.getMonth()+1, 1);
   }
   const monthAverages = months.map(mo=>{
-    const scores = activeHabits.map(h=>habitScoreForMonth(h, mo.y, mo.m, true)).filter(v=>v!==null);
-    return scores.length ? Math.min(100, Math.round(scores.reduce((a,b)=>a+b,0)/scores.length)) : null;
+    const scores = activeHabits.map(h=>habitScoreForMonth(h, mo.y, mo.m)).filter(v=>v!==null);
+    return scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : null;
   });
 
   let html = `<div class="grid cols-4" style="margin-bottom:24px;">
     <div class="stat"><div class="label">Период наблюдения</div><div class="value" style="font-size:16px;">${fmtDate(toISO(start))}</div><div class="sub">по сегодня, ${months.length} мес.</div></div>
-    <div class="stat"><div class="label">Средняя эффективность</div><div class="value">${overallAvg}%</div><div class="sub">среднее по привычкам (макс 100%)</div></div>
+    <div class="stat"><div class="label">Средняя эффективность</div><div class="value">${overallAvg}%</div><div class="sub">среднее по привычкам, с учётом нормы</div></div>
     <div class="stat"><div class="label">Активных привычек</div><div class="value">${activeHabits.length}</div><div class="sub">из ${state.habits.length} созданных</div></div>
     <div class="stat"><div class="label">Лучшая серия</div><div class="value">${bestStreakOverall}</div><div class="sub">выполненных сессий подряд, максимум</div></div>
-  </div>`;[cite: 1]
+  </div>`;
 
-  html += `<div class="chart-box" style="margin-bottom:24px;"><h4>Динамика эффективности по месяцам</h4><canvas id="allTimeChart" height="90"></canvas></div>`;[cite: 1]
+  html += `<div class="chart-box" style="margin-bottom:24px;"><h4>Динамика эффективности по месяцам</h4><canvas id="allTimeChart" height="90"></canvas></div>`;
 
-  html += `<div class="card"><table><thead><tr><th>Привычка</th><th>Категория</th><th>Норма</th><th>Средний результат</th><th>Лучшая серия</th></tr></thead><tbody>`;[cite: 1]
+  html += `<div class="card"><table><thead><tr><th>Привычка</th><th>Категория</th><th>Норма</th><th>Средний результат</th><th>Лучшая серия</th></tr></thead><tbody>`;
   perHabit.sort((a,b)=>(b.avg||0)-(a.avg||0)).forEach(p=>{
-    const cat = state.categories.find(c=>c.id===p.h.categoryId);[cite: 1]
-    const norm = p.h.cadence==='daily' ? 'Ежедневно' : p.h.cadence==='weekly' ? p.h.freq+'×/неделю' : p.h.freq+'×/месяц';[cite: 1]
-    html += `<tr><td><strong>${p.h.name}</strong></td><td><span class="tag" style="border-color:${cat?cat.color:'#ccc'};color:${cat?cat.color:'#666'};">${cat?cat.name:'—'}</span></td><td class="mono" style="font-size:11.5px;">${norm}</td><td class="mono">${p.avg===null?'—':p.avg+'%'}</td><td class="mono">${p.bestStreak}</td></tr>`;[cite: 1]
+    const cat = state.categories.find(c=>c.id===p.h.categoryId);
+    const norm = p.h.cadence==='daily' ? 'Ежедневно' : p.h.cadence==='weekly' ? p.h.freq+'×/неделю' : p.h.freq+'×/месяц';
+    html += `<tr><td><strong>${p.h.name}</strong></td><td><span class="tag" style="border-color:${cat?cat.color:'#ccc'};color:${cat?cat.color:'#666'};">${cat?cat.name:'—'}</span></td><td class="mono" style="font-size:11.5px;">${norm}</td><td class="mono">${p.avg===null?'—':p.avg+'%'}</td><td class="mono">${p.bestStreak}</td></tr>`;
   });
-  html += `</tbody></table></div>`;[cite: 1]
+  html += `</tbody></table></div>`;
 
-  c.innerHTML = html;[cite: 1]
-  drawLineChart('allTimeChart', months.map(m=>m.label), monthAverages.map(v=>v===null?0:v));[cite: 1]
+  c.innerHTML = html;
+  drawLineChart('allTimeChart', months.map(m=>m.label), monthAverages.map(v=>v===null?0:v));
 }
 
 /* =========================================================
@@ -1257,29 +1164,29 @@ function renderAllTime(){
    ========================================================= */
 function renderHabits(){
   setTop('Управление','Привычки и категории','Добавляйте новые привычки — они автоматически появятся во всех отчётах',
-    `<button class="btn btn-primary" onclick="openHabitModal()">+ Новая привычка</button> <button class="btn" onclick="openCategoryModal()" style="margin-left:8px;">+ Категория</button>`);[cite: 1]
-  const c = document.getElementById('content');[cite: 1]
-  let html='';[cite: 1]
+    `<button class="btn btn-primary" onclick="openHabitModal()">+ Новая привычка</button> <button class="btn" onclick="openCategoryModal()" style="margin-left:8px;">+ Категория</button>`);
+  const c = document.getElementById('content');
+  let html='';
   if(!state.categories.length && !state.habits.length){
-    c.innerHTML = emptyState('Список привычек пуст','Создайте категорию и первую привычку, чтобы начать отслеживание, либо заполните приложение примером данных.','habits')[cite: 1]
-      + `<div style="text-align:center;margin-top:-10px;"><button class="btn" onclick="loadExampleData()">Заполнить примером данных</button></div>`;[cite: 1]
-    return;[cite: 1]
+    c.innerHTML = emptyState('Список привычек пуст','Создайте категорию и первую привычку, чтобы начать отслеживание, либо заполните приложение примером данных.','habits')
+      + `<div style="text-align:center;margin-top:-10px;"><button class="btn" onclick="loadExampleData()">Заполнить примером данных</button></div>`;
+    return;
   }
   if(!state.categories.length){
-    html += `<div class="banner"><div><strong>Нет ни одной категории</strong><p>Сначала создайте категорию — привычки группируются по категориям.</p></div><button class="btn btn-primary btn-sm" onclick="openCategoryModal()">+ Категория</button></div>`;[cite: 1]
+    html += `<div class="banner"><div><strong>Нет ни одной категории</strong><p>Сначала создайте категорию — привычки группируются по категориям.</p></div><button class="btn btn-primary btn-sm" onclick="openCategoryModal()">+ Категория</button></div>`;
   }
 
   state.categories.forEach(cat=>{
-    const hs = state.habits.filter(h=>h.categoryId===cat.id);[cite: 1]
+    const hs = state.habits.filter(h=>h.categoryId===cat.id);
     html += `<div class="cat-block"><div class="cat-head"><span class="cat-dot" style="background:${cat.color}"></span><h3>${cat.name}</h3><span class="cat-count">${hs.length} привыч.</span>
       <button class="btn btn-ghost btn-sm" style="margin-left:auto;" onclick="openCategoryModal('${cat.id}')">Изменить</button>
-      <button class="btn btn-ghost btn-sm" onclick="deleteCategory('${cat.id}')">Удалить</button></div>`;[cite: 1]
-    if(!hs.length) html += `<div style="font-size:12px;color:var(--muted);padding:2px 2px 10px 2px;">В категории пока нет привычек.</div>`;[cite: 1]
+      <button class="btn btn-ghost btn-sm" onclick="deleteCategory('${cat.id}')">Удалить</button></div>`;
+    if(!hs.length) html += `<div style="font-size:12px;color:var(--muted);padding:2px 2px 10px 2px;">В категории пока нет привычек.</div>`;
     hs.forEach(h=>{
-      const cadge = h.cadence==='daily'?'Ежедневно':h.cadence==='weekly'?h.freq+'×/неделю':h.freq+'×/месяц';[cite: 1]
-      const type = h.trackingType==='percentage' ? `Цель: ${h.target} ${h.unit} (шаг: ±${h.step||1})` : 'Да/Нет';
-      const segs = h.segments&&h.segments.length ? h.segments.join(' · ') : null;[cite: 1]
-      const flexible = h.cadence!=='daily';[cite: 1]
+      const cadge = h.cadence==='daily'?'Ежедневно':h.cadence==='weekly'?h.freq+'×/неделю':h.freq+'×/месяц';
+      const type = h.trackingType==='percentage' ? 'Цель: '+h.target+' '+h.unit : 'Да/Нет';
+      const segs = h.segments&&h.segments.length ? h.segments.join(' · ') : null;
+      const flexible = h.cadence!=='daily';
       html += `<div class="habit-row">
         <div class="habit-info">
           <div class="habit-name">${h.name}</div>
@@ -1292,78 +1199,78 @@ function renderHabits(){
           <button class="btn btn-sm ${h.active?'btn-danger':''}" onclick="toggleHabitActive('${h.id}')">${h.active?'Архивировать':'Вернуть'}</button>
           <button class="btn btn-sm btn-danger" onclick="deleteHabit('${h.id}')">Удалить</button>
         </div>
-      </div>`;[cite: 1]
+      </div>`;
     });
-    html += `</div>`;[cite: 1]
+    html += `</div>`;
   });
-  c.innerHTML = html;[cite: 1]
+  c.innerHTML = html;
 }
 
 function assignedDatesLabel(h){
-  const now = new Date();[cite: 1]
-  const arr = h.cadence==='weekly' ? getWeeklyAssignment(h, weekKeyOf(now)) : getMonthlyAssignment(h, monthKeyOf(now));[cite: 1]
-  if(!arr || !arr.length) return 'дни не назначены';[cite: 1]
-  return arr.slice().sort().map(iso=>{[cite: 1]
-    const d = parseISO(iso);[cite: 1]
-    return h.cadence==='weekly' ? DOW[(d.getDay()+6)%7]+' '+d.getDate() : String(d.getDate());[cite: 1]
-  }).join(', ');[cite: 1]
+  const now = new Date();
+  const arr = h.cadence==='weekly' ? getWeeklyAssignment(h, weekKeyOf(now)) : getMonthlyAssignment(h, monthKeyOf(now));
+  if(!arr || !arr.length) return 'дни не назначены';
+  return arr.slice().sort().map(iso=>{
+    const d = parseISO(iso);
+    return h.cadence==='weekly' ? DOW[(d.getDay()+6)%7]+' '+d.getDate() : String(d.getDate());
+  }).join(', ');
 }
 
-function toggleHabitActive(id){ const h=state.habits.find(x=>x.id===id); h.active=!h.active; saveState(); render(); }[cite: 1]
+function toggleHabitActive(id){ const h=state.habits.find(x=>x.id===id); h.active=!h.active; saveState(); render(); }
 function deleteCategory(id){
-  const cat = state.categories.find(c=>c.id===id);[cite: 1]
-  const affected = state.habits.filter(h=>h.categoryId===id);[cite: 1]
+  const cat = state.categories.find(c=>c.id===id);
+  const affected = state.habits.filter(h=>h.categoryId===id);
   const msg = affected.length
-    ? `Удалить категорию «${cat.name}»? Вместе с ней будут удалены привычки этой категории (${affected.length}) и вся история отметок по ним. Это необратимо.`[cite: 1]
-    : `Удалить категорию «${cat.name}»?`;[cite: 1]
-  if(!confirm(msg)) return;[cite: 1]
-  const affectedIds = affected.map(h=>h.id);[cite: 1]
-  state.habits = state.habits.filter(h=>h.categoryId!==id);[cite: 1]
-  Object.keys(state.entries).forEach(k=>{ if(affectedIds.includes(k.split('|')[0])) delete state.entries[k]; });[cite: 1]
+    ? `Удалить категорию «${cat.name}»? Вместе с ней будут удалены привычки этой категории (${affected.length}) и вся история отметок по ним. Это необратимо.`
+    : `Удалить категорию «${cat.name}»?`;
+  if(!confirm(msg)) return;
+  const affectedIds = affected.map(h=>h.id);
+  state.habits = state.habits.filter(h=>h.categoryId!==id);
+  Object.keys(state.entries).forEach(k=>{ if(affectedIds.includes(k.split('|')[0])) delete state.entries[k]; });
   affectedIds.forEach(hid=>{
-    Object.keys(state.weeklyAssignments).forEach(k=>{ if(k.startsWith(hid+'|')) delete state.weeklyAssignments[k]; });[cite: 1]
-    Object.keys(state.monthlyAssignments).forEach(k=>{ if(k.startsWith(hid+'|')) delete state.monthlyAssignments[k]; });[cite: 1]
+    Object.keys(state.weeklyAssignments).forEach(k=>{ if(k.startsWith(hid+'|')) delete state.weeklyAssignments[k]; });
+    Object.keys(state.monthlyAssignments).forEach(k=>{ if(k.startsWith(hid+'|')) delete state.monthlyAssignments[k]; });
   });
-  state.strategicPlan = state.strategicPlan.filter(p=>!affectedIds.includes(p.habitId));[cite: 1]
-  state.categories = state.categories.filter(c=>c.id!==id);[cite: 1]
-  saveState(); toast('Категория и её привычки удалены'); render();[cite: 1]
+  state.strategicPlan = state.strategicPlan.filter(p=>!affectedIds.includes(p.habitId));
+  state.categories = state.categories.filter(c=>c.id!==id);
+  saveState(); toast('Категория и её привычки удалены'); render();
 }
 
 /* -------- модалка: привычка -------- */
 function openHabitModal(id){
-  const editing = id ? state.habits.find(h=>h.id===id) : null;[cite: 1]
-  const draft = editing ? JSON.parse(JSON.stringify(editing)) : {id:null, name:'', description:'', categoryId:state.categories[0]?.id||'', trackingType:'binary', target:100, step:1, unit:'', cadence:'daily', freq:2, segments:[], active:true};[cite: 1]
-  if(draft.step===undefined) draft.step = draft.trackingType==='percentage'? (draft.target>=1000?100:1) : 1;
-  window.__habitDraft = draft;[cite: 1]
-  window.__habitEditingId = editing ? editing.id : null;[cite: 1]
-  renderHabitModal();[cite: 1]
-  openModal();[cite: 1]
+  // Черновик создаётся ОДИН раз при открытии модалки. Дальнейшие клики по
+  // радиокнопкам/чипам должны только перерисовывать окно из этого черновика,
+  // а не пересоздавать его заново — иначе выбор сбрасывается.
+  const editing = id ? state.habits.find(h=>h.id===id) : null;
+  const draft = editing ? JSON.parse(JSON.stringify(editing)) : {id:null, name:'', description:'', categoryId:state.categories[0]?.id||'', trackingType:'binary', target:100, unit:'', cadence:'daily', freq:2, segments:[], active:true};
+  window.__habitDraft = draft;
+  window.__habitEditingId = editing ? editing.id : null;
+  renderHabitModal();
+  openModal();
 }
 function renderHabitModal(){
-  const draft = window.__habitDraft;[cite: 1]
-  const editingId = window.__habitEditingId;[cite: 1]
-  const box = document.getElementById('modalBox');[cite: 1]
-  
-  const nameEl = document.getElementById('f_name');[cite: 1]
-  if(nameEl) draft.name = nameEl.value;[cite: 1]
-  const descEl = document.getElementById('f_desc');[cite: 1]
-  if(descEl) draft.description = descEl.value;[cite: 1]
-  const targetEl = document.getElementById('f_target');[cite: 1]
-  if(targetEl) draft.target = Number(targetEl.value)||draft.target;[cite: 1]
-  const stepEl = document.getElementById('f_step');
-  if(stepEl) draft.step = Number(stepEl.value)||draft.step;
-  const unitEl = document.getElementById('f_unit');[cite: 1]
-  if(unitEl) draft.unit = unitEl.value;[cite: 1]
-  const freqEl = document.getElementById('f_freq');[cite: 1]
-  if(freqEl) draft.freq = Number(freqEl.value)||draft.freq;[cite: 1]
-  const catEl = document.getElementById('f_cat');[cite: 1]
-  if(catEl) draft.categoryId = catEl.value;[cite: 1]
+  const draft = window.__habitDraft;
+  const editingId = window.__habitEditingId;
+  const box = document.getElementById('modalBox');
+  // сохраняем то, что уже введено в текстовых полях, перед перерисовкой
+  const nameEl = document.getElementById('f_name');
+  if(nameEl) draft.name = nameEl.value;
+  const descEl = document.getElementById('f_desc');
+  if(descEl) draft.description = descEl.value;
+  const targetEl = document.getElementById('f_target');
+  if(targetEl) draft.target = Number(targetEl.value)||draft.target;
+  const unitEl = document.getElementById('f_unit');
+  if(unitEl) draft.unit = unitEl.value;
+  const freqEl = document.getElementById('f_freq');
+  if(freqEl) draft.freq = Number(freqEl.value)||draft.freq;
+  const catEl = document.getElementById('f_cat');
+  if(catEl) draft.categoryId = catEl.value;
 
   box.innerHTML = `
     <div class="modal-head"><h3>${editingId?'Изменить привычку':'Новая привычка'}</h3><button class="close-x" onclick="closeModal()">✕</button></div>
     <div class="modal-body">
       <div class="field"><label>Название</label><input type="text" id="f_name" value="${draft.name}" placeholder="Например, «Медитация»"></div>
-      <div class="field"><label>Описание <span style="font-weight:400;color:var(--muted);">(необязательно)</span></label><textarea id="f_desc" placeholder="Например: 10 минут дыхательной практики">${draft.description||''}</textarea></div>
+      <div class="field"><label>Описание <span style="font-weight:400;color:var(--muted);">(необязательно)</span></label><textarea id="f_desc" placeholder="Например: 10 минут дыхательной практики, лучше утром до завтрака">${draft.description||''}</textarea></div>
       <div class="field"><label>Категория</label><select id="f_cat" onchange="window.__habitDraft.categoryId=this.value">${state.categories.map(c=>`<option value="${c.id}" ${c.id===draft.categoryId?'selected':''}>${c.name}</option>`).join('')}</select></div>
 
       <div class="field"><label>Тип учёта</label>
@@ -1373,9 +1280,8 @@ function renderHabitModal(){
         </div>
       </div>
       <div id="f_targetWrap" style="display:${draft.trackingType==='percentage'?'flex':'none'};gap:10px;">
-        <div class="field" style="flex:1.2;"><label>Целевое значение</label><input type="number" id="f_target" value="${draft.target||100}"></div>
-        <div class="field" style="flex:1;"><label>Шаг ввода (±)</label><input type="number" min="1" id="f_step" value="${draft.step||1}"></div>
-        <div class="field" style="flex:1;"><label>Единица</label><input type="text" id="f_unit" value="${draft.unit||''}" placeholder="шаги, мл"></div>
+        <div class="field" style="flex:1;"><label>Целевое значение</label><input type="number" id="f_target" value="${draft.target||100}"></div>
+        <div class="field" style="flex:1;"><label>Единица</label><input type="text" id="f_unit" value="${draft.unit||''}" placeholder="шаги, мл, стр."></div>
       </div>
 
       <div class="field"><label>Периодичность</label>
@@ -1398,105 +1304,104 @@ function renderHabitModal(){
           ${draft.segments.filter(s=>!['Утро','День','Вечер'].includes(s)).map(s=>`<div class="chip sel" onclick="toggleSeg('${s}')">${s}</div>`).join('')}
           <div class="chip" onclick="addCustomSeg()">+ своя</div>
         </div>
-        <div class="hint">Если ничего не выбрано — привычка отмечается один раз в день. Для процентных привычек итог считается как сумма значений по частям.</div>
+        <div class="hint">Если ничего не выбрано — привычка отмечается один раз в день. Можно выбрать любое число частей.${draft.trackingType==='percentage'?' Для процентных привычек итог за день считается как сумма значений по всем частям.':''}</div>
       </div>
     </div>
     <div class="modal-foot">
       ${editingId?`<button class="btn btn-danger" style="margin-right:auto;" onclick="deleteHabit('${editingId}')">Удалить</button>`:''}
       <button class="btn" onclick="closeModal()">Отмена</button>
       <button class="btn btn-primary" onclick="saveHabitDraft()">Сохранить</button>
-    </div>`;[cite: 1]
+    </div>`;
 }
 function setDraftField(k,v){
-  window.__habitDraft[k]=v;[cite: 1]
-  renderHabitModal();[cite: 1]
+  window.__habitDraft[k]=v;
+  renderHabitModal();
 }
 function toggleSeg(s){
-  const d=window.__habitDraft; const i=d.segments.indexOf(s);[cite: 1]
-  if(i>-1) d.segments.splice(i,1); else d.segments.push(s);[cite: 1]
-  renderHabitModal();[cite: 1]
+  const d=window.__habitDraft; const i=d.segments.indexOf(s);
+  if(i>-1) d.segments.splice(i,1); else d.segments.push(s);
+  renderHabitModal();
 }
 function addCustomSeg(){
-  const name = prompt('Название части дня:');[cite: 1]
-  if(!name) return;[cite: 1]
-  window.__habitDraft.segments.push(name);[cite: 1]
-  renderHabitModal();[cite: 1]
+  const name = prompt('Название части дня:');
+  if(!name) return;
+  window.__habitDraft.segments.push(name);
+  renderHabitModal();
 }
 function saveHabitDraft(){
-  const d = window.__habitDraft;[cite: 1]
-  d.name = document.getElementById('f_name').value.trim();[cite: 1]
-  if(!d.name){ toast('Введите название привычки'); return; }[cite: 1]
-  d.description = document.getElementById('f_desc').value.trim();[cite: 1]
-  d.categoryId = document.getElementById('f_cat').value;[cite: 1]
+  const d = window.__habitDraft;
+  d.name = document.getElementById('f_name').value.trim();
+  if(!d.name){ toast('Введите название привычки'); return; }
+  d.description = document.getElementById('f_desc').value.trim();
+  d.categoryId = document.getElementById('f_cat').value;
   if(d.trackingType==='percentage'){
-    d.target = Number(document.getElementById('f_target').value)||100;[cite: 1]
-    d.step = Math.max(1, Number(document.getElementById('f_step').value)||1);
-    d.unit = document.getElementById('f_unit').value.trim();[cite: 1]
+    d.target = Number(document.getElementById('f_target').value)||100;
+    d.unit = document.getElementById('f_unit').value.trim();
   }
-  if(d.cadence!=='daily'){ d.freq = Number(document.getElementById('f_freq').value)||1; d.segments=[]; }[cite: 1]
+  if(d.cadence!=='daily'){ d.freq = Number(document.getElementById('f_freq').value)||1; d.segments=[]; }
   if(d.id){
-    const idx = state.habits.findIndex(h=>h.id===d.id); state.habits[idx]=d;[cite: 1]
+    const idx = state.habits.findIndex(h=>h.id===d.id); state.habits[idx]=d;
   } else {
-    d.id = uid('h'); d.active=true; d.createdAt=todayISO(); state.habits.push(d);[cite: 1]
+    d.id = uid('h'); d.active=true; d.createdAt=todayISO(); state.habits.push(d);
   }
-  saveState(); closeModal(); toast('Привычка сохранена — появится во всех отчётах'); render();[cite: 1]
+  saveState(); closeModal(); toast('Привычка сохранена — появится во всех отчётах'); render();
 }
 function deleteHabit(id){
-  const h = state.habits.find(x=>x.id===id);[cite: 1]
-  if(!confirm(`Удалить привычку «${h?h.name:''}» и всю историю по ней? Это необратимо.`)) return;[cite: 1]
-  state.habits = state.habits.filter(x=>x.id!==id);[cite: 1]
-  Object.keys(state.entries).forEach(k=>{ if(k.startsWith(id+'|')) delete state.entries[k]; });[cite: 1]
-  Object.keys(state.weeklyAssignments).forEach(k=>{ if(k.startsWith(id+'|')) delete state.weeklyAssignments[k]; });[cite: 1]
-  Object.keys(state.monthlyAssignments).forEach(k=>{ if(k.startsWith(id+'|')) delete state.monthlyAssignments[k]; });[cite: 1]
-  state.strategicPlan = state.strategicPlan.filter(p=>p.habitId!==id);[cite: 1]
-  saveState(); closeModal(); toast('Привычка удалена'); render();[cite: 1]
+  const h = state.habits.find(x=>x.id===id);
+  if(!confirm(`Удалить привычку «${h?h.name:''}» и всю историю по ней? Это необратимо.`)) return;
+  state.habits = state.habits.filter(x=>x.id!==id);
+  Object.keys(state.entries).forEach(k=>{ if(k.startsWith(id+'|')) delete state.entries[k]; });
+  Object.keys(state.weeklyAssignments).forEach(k=>{ if(k.startsWith(id+'|')) delete state.weeklyAssignments[k]; });
+  Object.keys(state.monthlyAssignments).forEach(k=>{ if(k.startsWith(id+'|')) delete state.monthlyAssignments[k]; });
+  state.strategicPlan = state.strategicPlan.filter(p=>p.habitId!==id);
+  saveState(); closeModal(); toast('Привычка удалена'); render();
 }
 
 function isPastDate(iso){
-  const d = parseISO(iso);[cite: 1]
-  const t = new Date(); t.setHours(0,0,0,0);[cite: 1]
-  return d < t;[cite: 1]
+  const d = parseISO(iso);
+  const t = new Date(); t.setHours(0,0,0,0);
+  return d < t;
 }
 
-/* -------- модалка: перенос дней -------- */
+/* -------- модалка: перенос дней (weekly/monthly) в рамках текущего периода -------- */
 function openRescheduleModal(habitId){
-  const h = state.habits.find(x=>x.id===habitId);[cite: 1]
-  if(!h || h.cadence==='daily'){ toast('Перенос доступен только для привычек с гибким графиком'); return; }[cite: 1]
-  const now = new Date();[cite: 1]
-  const isWeekly = h.cadence==='weekly';[cite: 1]
-  const periodKey = isWeekly ? weekKeyOf(now) : monthKeyOf(now);[cite: 1]
-  const current = isWeekly ? getWeeklyAssignment(h, periodKey) : getMonthlyAssignment(h, periodKey);[cite: 1]
-  if(!current){ toast('Сначала назначьте дни на текущий период — нажмите «Назначить дни»'); openAssignModal(); return; }[cite: 1]
-  window.__reschedule = {habitId, periodKey, isWeekly, picks:current.slice()};[cite: 1]
-  renderRescheduleModal();[cite: 1]
-  openModal();[cite: 1]
+  const h = state.habits.find(x=>x.id===habitId);
+  if(!h || h.cadence==='daily'){ toast('Перенос доступен только для привычек с гибким графиком'); return; }
+  const now = new Date();
+  const isWeekly = h.cadence==='weekly';
+  const periodKey = isWeekly ? weekKeyOf(now) : monthKeyOf(now);
+  const current = isWeekly ? getWeeklyAssignment(h, periodKey) : getMonthlyAssignment(h, periodKey);
+  if(!current){ toast('Сначала назначьте дни на текущий период — нажмите «Назначить дни»'); openAssignModal(); return; }
+  window.__reschedule = {habitId, periodKey, isWeekly, picks:current.slice()};
+  renderRescheduleModal();
+  openModal();
 }
 function renderRescheduleModal(){
-  const rs = window.__reschedule;[cite: 1]
-  const h = state.habits.find(x=>x.id===rs.habitId);[cite: 1]
-  const now = new Date();[cite: 1]
-  let allDates = [];[cite: 1]
+  const rs = window.__reschedule;
+  const h = state.habits.find(x=>x.id===rs.habitId);
+  const now = new Date();
+  let allDates = [];
   if(rs.isWeekly){
-    const ws = startOfWeek(now);[cite: 1]
-    allDates = [0,1,2,3,4,5,6].map(idx=>{ const dt=addDays(ws,idx); return {iso:toISO(dt), label:DOW[idx]+' '+dt.getDate()}; });[cite: 1]
+    const ws = startOfWeek(now);
+    allDates = [0,1,2,3,4,5,6].map(idx=>{ const dt=addDays(ws,idx); return {iso:toISO(dt), label:DOW[idx]+' '+dt.getDate()}; });
   } else {
-    const y=now.getFullYear(), m=now.getMonth(), nd=daysInMonth(y,m);[cite: 1]
-    allDates = Array.from({length:nd},(_,k)=>k+1).map(dnum=>{ const dt=new Date(y,m,dnum); return {iso:toISO(dt), label:String(dnum)}; });[cite: 1]
+    const y=now.getFullYear(), m=now.getMonth(), nd=daysInMonth(y,m);
+    allDates = Array.from({length:nd},(_,k)=>k+1).map(dnum=>{ const dt=new Date(y,m,dnum); return {iso:toISO(dt), label:String(dnum)}; });
   }
-  const futureCount = allDates.filter(d=>!isPastDate(d.iso)).length;[cite: 1]
-  const optionsHTML = `<div class="check-row">` + allDates.map(d=>{[cite: 1]
-    const sel = rs.picks.includes(d.iso);[cite: 1]
-    const past = isPastDate(d.iso);[cite: 1]
-    if(past && sel) return `<div class="chip missed" onclick="toggleReschedulePick('${d.iso}')" title="Прошедший день — нажмите, чтобы снять и освободить">${d.label} ✕</div>`;[cite: 1]
-    if(past && !sel) return `<div class="chip disabled" title="Прошедший день недоступен для назначения">${d.label}</div>`;[cite: 1]
-    return `<div class="chip ${sel?'sel':''}" onclick="toggleReschedulePick('${d.iso}')">${d.label}</div>`;[cite: 1]
-  }).join('') + `</div>`;[cite: 1]
+  const futureCount = allDates.filter(d=>!isPastDate(d.iso)).length;
+  const optionsHTML = `<div class="check-row">` + allDates.map(d=>{
+    const sel = rs.picks.includes(d.iso);
+    const past = isPastDate(d.iso);
+    if(past && sel) return `<div class="chip missed" onclick="toggleReschedulePick('${d.iso}')" title="Прошедший день — нажмите, чтобы снять и освободить">${d.label} ✕</div>`;
+    if(past && !sel) return `<div class="chip disabled" title="Прошедший день недоступен для назначения">${d.label}</div>`;
+    return `<div class="chip ${sel?'sel':''}" onclick="toggleReschedulePick('${d.iso}')">${d.label}</div>`;
+  }).join('') + `</div>`;
 
-  const notice = h.freq > futureCount + rs.picks.filter(iso=>isPastDate(iso)).length[cite: 1]
-    ? `<div class="banner" style="margin-top:12px;"><div><strong>Недостаточно дней в периоде</strong><p>Осталось ${futureCount} дн. до конца периода — выполнить норму в ${h.freq} раз(а) полностью уже не получится, можно распределить, сколько успеете.</p></div></div>`[cite: 1]
-    : '';[cite: 1]
+  const notice = h.freq > futureCount + rs.picks.filter(iso=>isPastDate(iso)).length
+    ? `<div class="banner" style="margin-top:12px;"><div><strong>Недостаточно дней в периоде</strong><p>Осталось ${futureCount} дн. до конца периода — выполнить норму в ${h.freq} раз(а) полностью уже не получится, можно распределить, сколько успеете.</p></div></div>`
+    : '';
 
-  const box = document.getElementById('modalBox');[cite: 1]
+  const box = document.getElementById('modalBox');
   box.innerHTML = `<div class="modal-head"><h3>Перенос дней — ${h.name}</h3><button class="close-x" onclick="closeModal()">✕</button></div>
     <div class="modal-body">
       <p style="font-size:12.5px;color:var(--muted);margin-top:0;">Изменения действуют только в рамках текущего${rs.isWeekly?' недели':' месяца'}. Норма — <strong>${h.freq}</strong> ${rs.isWeekly?'дн.':'дат'}. Нажмите на прошедший назначенный день (со значком ✕), чтобы снять его, и выберите вместо него сегодняшний или будущий день.</p>
@@ -1504,37 +1409,38 @@ function renderRescheduleModal(){
       <div class="hint">Выбрано: ${rs.picks.length} из ${h.freq}</div>
       ${notice}
     </div>
-    <div class="modal-foot"><button class="btn" onclick="closeModal()">Отмена</button><button class="btn btn-primary" onclick="saveReschedule()">Сохранить перенос</button></div>`;[cite: 1]
+    <div class="modal-foot"><button class="btn" onclick="closeModal()">Отмена</button><button class="btn btn-primary" onclick="saveReschedule()">Сохранить перенос</button></div>`;
 }
 function toggleReschedulePick(iso){
-  const rs = window.__reschedule; const h = state.habits.find(x=>x.id===rs.habitId);[cite: 1]
-  const idx = rs.picks.indexOf(iso);[cite: 1]
+  const rs = window.__reschedule; const h = state.habits.find(x=>x.id===rs.habitId);
+  const idx = rs.picks.indexOf(iso);
   if(idx>-1){
-    rs.picks.splice(idx,1);[cite: 1]
+    // снимаем — разрешено как для будущих, так и для прошедших (уже назначенных) дней
+    rs.picks.splice(idx,1);
   } else {
-    if(isPastDate(iso)){ toast('Нельзя назначить прошедший день'); return; }[cite: 1]
-    if(rs.picks.length>=h.freq){ toast('Уже выбрано максимум: '+h.freq); return; }[cite: 1]
-    rs.picks.push(iso);[cite: 1]
+    if(isPastDate(iso)){ toast('Нельзя назначить прошедший день'); return; }
+    if(rs.picks.length>=h.freq){ toast('Уже выбрано максимум: '+h.freq); return; }
+    rs.picks.push(iso);
   }
-  renderRescheduleModal();[cite: 1]
+  renderRescheduleModal();
 }
 function saveReschedule(){
-  const rs = window.__reschedule; const h = state.habits.find(x=>x.id===rs.habitId);[cite: 1]
-  if(rs.picks.length===0){ toast('Выберите хотя бы один день'); return; }[cite: 1]
-  if(rs.picks.length>h.freq){ toast('Выбрано больше, чем нужно: максимум '+h.freq); return; }[cite: 1]
-  if(rs.isWeekly) setWeeklyAssignment(h, rs.periodKey, rs.picks);[cite: 1]
-  else setMonthlyAssignment(h, rs.periodKey, rs.picks);[cite: 1]
-  closeModal();[cite: 1]
-  toast(rs.picks.length<h.freq ? 'Дни перенесены (выполнено будет меньше нормы — не хватило дней в периоде)' : 'Дни перенесены');[cite: 1]
-  render();[cite: 1]
+  const rs = window.__reschedule; const h = state.habits.find(x=>x.id===rs.habitId);
+  if(rs.picks.length===0){ toast('Выберите хотя бы один день'); return; }
+  if(rs.picks.length>h.freq){ toast('Выбрано больше, чем нужно: максимум '+h.freq); return; }
+  if(rs.isWeekly) setWeeklyAssignment(h, rs.periodKey, rs.picks);
+  else setMonthlyAssignment(h, rs.periodKey, rs.picks);
+  closeModal();
+  toast(rs.picks.length<h.freq ? 'Дни перенесены (выполнено будет меньше нормы — не хватило дней в периоде)' : 'Дни перенесены');
+  render();
 }
 
-/* -------- модалка: категория -------- */
+/* -------- модалка: категория (создание и редактирование) -------- */
 function openCategoryModal(id){
-  const editing = id ? state.categories.find(c=>c.id===id) : null;[cite: 1]
-  window.__catDraftId = editing ? editing.id : null;[cite: 1]
-  window.__catColor = editing ? editing.color : CAT_COLORS[state.categories.length % CAT_COLORS.length];[cite: 1]
-  const box = document.getElementById('modalBox');[cite: 1]
+  const editing = id ? state.categories.find(c=>c.id===id) : null;
+  window.__catDraftId = editing ? editing.id : null;
+  window.__catColor = editing ? editing.color : CAT_COLORS[state.categories.length % CAT_COLORS.length];
+  const box = document.getElementById('modalBox');
   box.innerHTML = `<div class="modal-head"><h3>${editing?'Изменить категорию':'Новая категория'}</h3><button class="close-x" onclick="closeModal()">✕</button></div>
     <div class="modal-body">
       <div class="field"><label>Название</label><input type="text" id="f_catName" value="${editing?editing.name:''}" placeholder="Например, «Финансы»"></div>
@@ -1544,92 +1450,93 @@ function openCategoryModal(id){
       ${editing?`<button class="btn btn-danger" style="margin-right:auto;" onclick="deleteCategory('${editing.id}')">Удалить</button>`:''}
       <button class="btn" onclick="closeModal()">Отмена</button>
       <button class="btn btn-primary" onclick="saveCategoryDraft()">${editing?'Сохранить':'Создать'}</button>
-    </div>`;[cite: 1]
-  openModal();[cite: 1]
+    </div>`;
+  openModal();
 }
 function selectCatColor(col){
-  window.__catColor = col;[cite: 1]
-  document.querySelectorAll('.color-opt').forEach(e=>{ e.style.outline = e.getAttribute('data-color')===col ? '2px solid #333' : 'none'; });[cite: 1]
+  window.__catColor = col;
+  document.querySelectorAll('.color-opt').forEach(e=>{ e.style.outline = e.getAttribute('data-color')===col ? '2px solid #333' : 'none'; });
 }
 function saveCategoryDraft(){
-  const name = document.getElementById('f_catName').value.trim();[cite: 1]
-  if(!name){ toast('Введите название категории'); return; }[cite: 1]
+  const name = document.getElementById('f_catName').value.trim();
+  if(!name){ toast('Введите название категории'); return; }
   if(window.__catDraftId){
-    const cat = state.categories.find(c=>c.id===window.__catDraftId);[cite: 1]
-    cat.name = name; cat.color = window.__catColor || cat.color;[cite: 1]
-    saveState(); closeModal(); toast('Категория обновлена'); render();[cite: 1]
+    const cat = state.categories.find(c=>c.id===window.__catDraftId);
+    cat.name = name; cat.color = window.__catColor || cat.color;
+    saveState(); closeModal(); toast('Категория обновлена'); render();
   } else {
-    state.categories.push({id:uid('cat'), name, color:window.__catColor||CAT_COLORS[0]});[cite: 1]
-    saveState(); closeModal(); toast('Категория добавлена'); render();[cite: 1]
+    state.categories.push({id:uid('cat'), name, color:window.__catColor||CAT_COLORS[0]});
+    saveState(); closeModal(); toast('Категория добавлена'); render();
   }
 }
 
-/* -------- модалка: назначение дней -------- */
+/* -------- модалка: назначение дней недели/месяца -------- */
 function openAssignModal(){
-  const d = new Date();[cite: 1]
-  const needing = habitsNeedingAssignment(currentView==='month'?monthCursor:(currentView==='week'?weekCursor:d));[cite: 1]
-  if(!needing.length){ closeModal(); return; }[cite: 1]
-  window.__assignQueue = needing;[cite: 1]
-  window.__assignIdx = 0;[cite: 1]
-  window.__assignPicks = {};[cite: 1]
-  renderAssignStep();[cite: 1]
-  openModal();[cite: 1]
+  const d = new Date();
+  const wk = weekKeyOf(weekCursor.getTime?weekCursor:d);
+  const needing = habitsNeedingAssignment(currentView==='month'?monthCursor:(currentView==='week'?weekCursor:d));
+  if(!needing.length){ closeModal(); return; }
+  window.__assignQueue = needing;
+  window.__assignIdx = 0;
+  window.__assignPicks = {};
+  renderAssignStep();
+  openModal();
 }
 function renderAssignStep(){
-  const q = window.__assignQueue, i = window.__assignIdx;[cite: 1]
-  const box = document.getElementById('modalBox');[cite: 1]
+  const q = window.__assignQueue, i = window.__assignIdx;
+  const box = document.getElementById('modalBox');
   if(i>=q.length){
-    box.innerHTML = `<div class="modal-head"><h3>Готово</h3></div><div class="modal-body"><p>Дни назначены для всех привычек.</p></div><div class="modal-foot"><button class="btn btn-primary" onclick="closeModal();render();">Закрыть</button></div>`;[cite: 1]
-    return;[cite: 1]
+    box.innerHTML = `<div class="modal-head"><h3>Готово</h3></div><div class="modal-body"><p>Дни назначены для всех привычек.</p></div><div class="modal-foot"><button class="btn btn-primary" onclick="closeModal();render();">Закрыть</button></div>`;
+    return;
   }
-  const h = q[i];[cite: 1]
-  const refDate = currentView==='month' ? monthCursor : (currentView==='week' ? weekCursor : new Date());[cite: 1]
-  let optionsHTML='';[cite: 1]
+  const h = q[i];
+  const refDate = currentView==='month' ? monthCursor : (currentView==='week' ? weekCursor : new Date());
+  let optionsHTML='';
   if(h.cadence==='weekly'){
-    const ws = startOfWeek(refDate);[cite: 1]
-    optionsHTML = `<div class="check-row">` + [0,1,2,3,4,5,6].map(idx=>{[cite: 1]
-      const dt = addDays(ws,idx); const iso=toISO(dt);[cite: 1]
-      const sel = (window.__assignPicks[h.id]||[]).includes(iso);[cite: 1]
-      const past = isPastDate(iso);[cite: 1]
-      const cls = sel ? 'sel' : (past?'disabled':'');[cite: 1]
-      return `<div class="chip ${cls}" ${past?'':`onclick="toggleAssignPick('${h.id}','${iso}')"`}>${DOW[idx]} ${dt.getDate()}</div>`;[cite: 1]
-    }).join('') + `</div><div class="hint">Выберите ${h.freq} дн. Прошедшие дни этой недели недоступны. Позже можно перенести день.</div>`;[cite: 1]
+    const ws = startOfWeek(refDate);
+    optionsHTML = `<div class="check-row">` + [0,1,2,3,4,5,6].map(idx=>{
+      const dt = addDays(ws,idx); const iso=toISO(dt);
+      const sel = (window.__assignPicks[h.id]||[]).includes(iso);
+      const past = isPastDate(iso);
+      const cls = sel ? 'sel' : (past?'disabled':'');
+      return `<div class="chip ${cls}" ${past?'':`onclick="toggleAssignPick('${h.id}','${iso}')"`}>${DOW[idx]} ${dt.getDate()}</div>`;
+    }).join('') + `</div><div class="hint">Выберите ${h.freq} дн. Прошедшие дни этой недели недоступны. Позже можно перенести день в рамках этой недели.</div>`;
   } else {
-    const y=refDate.getFullYear(), m=refDate.getMonth(), nd=daysInMonth(y,m);[cite: 1]
-    optionsHTML = `<div class="check-row" style="max-height:180px;overflow:auto;">` + Array.from({length:nd},(_,k)=>k+1).map(dnum=>{[cite: 1]
-      const dt=new Date(y,m,dnum); const iso=toISO(dt);[cite: 1]
-      const sel = (window.__assignPicks[h.id]||[]).includes(iso);[cite: 1]
-      const past = isPastDate(iso);[cite: 1]
-      const cls = sel ? 'sel' : (past?'disabled':'');[cite: 1]
-      return `<div class="chip ${cls}" ${past?'':`onclick="toggleAssignPick('${h.id}','${iso}')"`}>${dnum}</div>`;[cite: 1]
-    }).join('') + `</div><div class="hint">Выберите ${h.freq} дат. Прошедшие даты этого месяца недоступны.</div>`;[cite: 1]
+    const y=refDate.getFullYear(), m=refDate.getMonth(), nd=daysInMonth(y,m);
+    optionsHTML = `<div class="check-row" style="max-height:180px;overflow:auto;">` + Array.from({length:nd},(_,k)=>k+1).map(dnum=>{
+      const dt=new Date(y,m,dnum); const iso=toISO(dt);
+      const sel = (window.__assignPicks[h.id]||[]).includes(iso);
+      const past = isPastDate(iso);
+      const cls = sel ? 'sel' : (past?'disabled':'');
+      return `<div class="chip ${cls}" ${past?'':`onclick="toggleAssignPick('${h.id}','${iso}')"`}>${dnum}</div>`;
+    }).join('') + `</div><div class="hint">Выберите ${h.freq} дат. Прошедшие даты этого месяца недоступны. Позже можно перенести дату в рамках этого месяца.</div>`;
   }
   box.innerHTML = `<div class="modal-head"><h3>${h.name} — выбор дней (${i+1}/${q.length})</h3><button class="close-x" onclick="closeModal()">✕</button></div>
     <div class="modal-body">
       <p style="font-size:12.5px;color:var(--muted);margin-top:0;">Нужно выбрать: <strong>${h.freq}</strong> ${h.cadence==='weekly'?'дн. на эту неделю':'дат на этот месяц'}.</p>
       ${optionsHTML}
     </div>
-    <div class="modal-foot"><button class="btn" onclick="closeModal()">Позже</button><button class="btn btn-primary" onclick="confirmAssignStep()">Подтвердить и далее</button></div>`;[cite: 1]
+    <div class="modal-foot"><button class="btn" onclick="closeModal()">Позже</button><button class="btn btn-primary" onclick="confirmAssignStep()">Подтвердить и далее</button></div>`;
 }
 function toggleAssignPick(habitId, iso){
-  if(isPastDate(iso)){ toast('Нельзя выбрать прошедший день'); return; }[cite: 1]
-  const h = window.__assignQueue.find(x=>x.id===habitId);[cite: 1]
-  const arr = window.__assignPicks[habitId] || [];[cite: 1]
-  const idx = arr.indexOf(iso);[cite: 1]
-  if(idx>-1) arr.splice(idx,1);[cite: 1]
-  else { if(arr.length>=h.freq){ toast('Достаточно выбрано: '+h.freq); } else arr.push(iso); }[cite: 1]
-  window.__assignPicks[habitId]=arr;[cite: 1]
-  renderAssignStep();[cite: 1]
+  if(isPastDate(iso)){ toast('Нельзя выбрать прошедший день'); return; }
+  const h = window.__assignQueue.find(x=>x.id===habitId);
+  const arr = window.__assignPicks[habitId] || [];
+  const idx = arr.indexOf(iso);
+  if(idx>-1) arr.splice(idx,1);
+  else { if(arr.length>=h.freq){ toast('Достаточно выбрано: '+h.freq); } else arr.push(iso); }
+  window.__assignPicks[habitId]=arr;
+  renderAssignStep();
 }
 function confirmAssignStep(){
-  const h = window.__assignQueue[window.__assignIdx];[cite: 1]
-  const picks = window.__assignPicks[h.id] || [];[cite: 1]
-  if(!picks.length){ toast('Выберите хотя бы один день'); return; }[cite: 1]
-  const refDate = currentView==='month' ? monthCursor : (currentView==='week' ? weekCursor : new Date());[cite: 1]
-  if(h.cadence==='weekly') setWeeklyAssignment(h, weekKeyOf(refDate), picks);[cite: 1]
-  else setMonthlyAssignment(h, monthKeyOf(refDate), picks);[cite: 1]
-  window.__assignIdx++;[cite: 1]
-  renderAssignStep();[cite: 1]
+  const h = window.__assignQueue[window.__assignIdx];
+  const picks = window.__assignPicks[h.id] || [];
+  if(!picks.length){ toast('Выберите хотя бы один день'); return; }
+  const refDate = currentView==='month' ? monthCursor : (currentView==='week' ? weekCursor : new Date());
+  if(h.cadence==='weekly') setWeeklyAssignment(h, weekKeyOf(refDate), picks);
+  else setMonthlyAssignment(h, monthKeyOf(refDate), picks);
+  window.__assignIdx++;
+  renderAssignStep();
 }
 
 /* =========================================================
@@ -1637,43 +1544,44 @@ function confirmAssignStep(){
    ========================================================= */
 function renderStrategy(){
   setTop('Стратегия','Стратегический план внедрения привычек','Цепочка этапов по каждой привычке и визуализация сроков',
-    `<button class="btn btn-primary" onclick="openPlanModal()">+ План по привычке</button>`);[cite: 1]
-  const c = document.getElementById('content');[cite: 1]
-  let html='';[cite: 1]
+    `<button class="btn btn-primary" onclick="openPlanModal()">+ План по привычке</button>`);
+  const c = document.getElementById('content');
+  let html='';
 
   if(!state.strategicPlan.length){
-    c.innerHTML = emptyState('Стратегический план пуст','Добавьте план внедрения для одной из привычек.','strategy');[cite: 1]
-    return;[cite: 1]
+    c.innerHTML = emptyState('Стратегический план пуст','Добавьте план внедрения для одной из привычек.','strategy');
+    return;
   }
 
-  let minD=null, maxD=null;[cite: 1]
-  state.strategicPlan.forEach(p=> p.phases.forEach(ph=>{[cite: 1]
-    const s=parseISO(ph.start), e=parseISO(ph.end);[cite: 1]
-    if(!minD||s<minD) minD=s; if(!maxD||e>maxD) maxD=e;[cite: 1]
+  // Диапазон дат для оси Ганта
+  let minD=null, maxD=null;
+  state.strategicPlan.forEach(p=> p.phases.forEach(ph=>{
+    const s=parseISO(ph.start), e=parseISO(ph.end);
+    if(!minD||s<minD) minD=s; if(!maxD||e>maxD) maxD=e;
   }));
-  if(!minD){ minD=new Date(); maxD=addDays(new Date(),30); }[cite: 1]
-  const totalDays = Math.max(1,(maxD-minD)/86400000);[cite: 1]
+  if(!minD){ minD=new Date(); maxD=addDays(new Date(),30); }
+  const totalDays = Math.max(1,(maxD-minD)/86400000);
 
-  html += `<div class="section-title"><h2>Диаграмма Ганта — сроки внедрения</h2><span class="hint">${fmtShort(minD)} — ${fmtShort(maxD)}</span></div>`;[cite: 1]
-  html += `<div class="gantt-wrap"><div class="gantt">`;[cite: 1]
-  html += `<div class="gantt-axis"><div></div><div class="gantt-axis-track">${ganttAxisLabels(minD,maxD)}</div></div>`;[cite: 1]
-  state.strategicPlan.forEach(p=>{[cite: 1]
-    const h = state.habits.find(x=>x.id===p.habitId);[cite: 1]
-    html += `<div class="gantt-row"><div class="gantt-label">${h?h.name:'—'}</div><div class="gantt-track">`;[cite: 1]
-    p.phases.forEach((ph,idx)=>{[cite: 1]
-      const s=parseISO(ph.start), e=parseISO(ph.end);[cite: 1]
-      const left = ((s-minD)/86400000)/totalDays*100;[cite: 1]
-      const width = Math.max(2,((e-s)/86400000)/totalDays*100);[cite: 1]
-      const color = CAT_COLORS[idx % CAT_COLORS.length];[cite: 1]
-      html += `<div class="gantt-bar" style="left:${left}%;width:${width}%;background:${color};" title="${ph.name}: ${fmtShort(s)} — ${fmtShort(e)}">${ph.name}</div>`;[cite: 1]
+  html += `<div class="section-title"><h2>Диаграмма Ганта — сроки внедрения</h2><span class="hint">${fmtShort(minD)} — ${fmtShort(maxD)}</span></div>`;
+  html += `<div class="gantt-wrap"><div class="gantt">`;
+  html += `<div class="gantt-axis"><div></div><div class="gantt-axis-track">${ganttAxisLabels(minD,maxD)}</div></div>`;
+  state.strategicPlan.forEach(p=>{
+    const h = state.habits.find(x=>x.id===p.habitId);
+    html += `<div class="gantt-row"><div class="gantt-label">${h?h.name:'—'}</div><div class="gantt-track">`;
+    p.phases.forEach((ph,idx)=>{
+      const s=parseISO(ph.start), e=parseISO(ph.end);
+      const left = ((s-minD)/86400000)/totalDays*100;
+      const width = Math.max(2,((e-s)/86400000)/totalDays*100);
+      const color = CAT_COLORS[idx % CAT_COLORS.length];
+      html += `<div class="gantt-bar" style="left:${left}%;width:${width}%;background:${color};" title="${ph.name}: ${fmtShort(s)} — ${fmtShort(e)}">${ph.name}</div>`;
     });
-    html += `</div></div>`;[cite: 1]
+    html += `</div></div>`;
   });
-  html += `</div></div>`;[cite: 1]
+  html += `</div></div>`;
 
-  html += `<div class="section-title"><h2>Планы по привычкам</h2></div>`;[cite: 1]
-  state.strategicPlan.forEach(p=>{[cite: 1]
-    const h = state.habits.find(x=>x.id===p.habitId);[cite: 1]
+  html += `<div class="section-title"><h2>Планы по привычкам</h2></div>`;
+  state.strategicPlan.forEach(p=>{
+    const h = state.habits.find(x=>x.id===p.habitId);
     html += `<div class="plan-card">
       <div class="plan-card-head">
         <div><h3 style="font-size:14.5px;">${h?h.name:'—'}</h3><p style="font-size:12px;color:var(--muted);margin:4px 0 0 0;max-width:640px;">${p.goal}</p></div>
@@ -1681,35 +1589,35 @@ function renderStrategy(){
           <button class="btn btn-sm" onclick="openPlanModal('${p.id}')">Изменить</button>
           <button class="btn btn-sm btn-danger" onclick="deletePlan('${p.id}')">Удалить</button>
         </div>
-      </div>`;[cite: 1]
-    p.phases.forEach((ph,idx)=>{[cite: 1]
+      </div>`;
+    p.phases.forEach((ph,idx)=>{
       html += `<div class="phase-item"><div class="phase-idx">${idx+1}</div><div class="phase-body">
         <div class="pname">${ph.name}</div>
         <div class="pdate">${fmtDate(ph.start)} → ${fmtDate(ph.end)}</div>
         ${ph.note?`<div class="pnote">${ph.note}</div>`:''}
-      </div></div>`;[cite: 1]
+      </div></div>`;
     });
-    html += `</div>`;[cite: 1]
+    html += `</div>`;
   });
 
-  c.innerHTML = html;[cite: 1]
+  c.innerHTML = html;
 }
 function ganttAxisLabels(minD,maxD){
-  const n=6; let out='';[cite: 1]
-  for(let i=0;i<n;i++){ const d=new Date(minD.getTime()+(maxD-minD)*i/n); out+=`<div>${fmtShort(d)}</div>`; }[cite: 1]
-  return out;[cite: 1]
+  const n=6; let out='';
+  for(let i=0;i<n;i++){ const d=new Date(minD.getTime()+(maxD-minD)*i/n); out+=`<div>${fmtShort(d)}</div>`; }
+  return out;
 }
 
 function openPlanModal(id){
-  const editing = id ? state.strategicPlan.find(p=>p.id===id) : null;[cite: 1]
-  const draft = editing ? JSON.parse(JSON.stringify(editing)) : {id:null, habitId:state.habits[0]?.id||'', goal:'', phases:[]};[cite: 1]
-  window.__planDraft = draft;[cite: 1]
-  renderPlanModal();[cite: 1]
-  openModal();[cite: 1]
+  const editing = id ? state.strategicPlan.find(p=>p.id===id) : null;
+  const draft = editing ? JSON.parse(JSON.stringify(editing)) : {id:null, habitId:state.habits[0]?.id||'', goal:'', phases:[]};
+  window.__planDraft = draft;
+  renderPlanModal();
+  openModal();
 }
 function renderPlanModal(){
-  const d = window.__planDraft;[cite: 1]
-  const box = document.getElementById('modalBox');[cite: 1]
+  const d = window.__planDraft;
+  const box = document.getElementById('modalBox');
   box.innerHTML = `<div class="modal-head"><h3>${d.id?'Изменить план':'Новый план внедрения'}</h3><button class="close-x" onclick="closeModal()">✕</button></div>
     <div class="modal-body">
       <div class="field"><label>Привычка</label><select id="p_habit" onchange="window.__planDraft.habitId=this.value">${state.habits.map(h=>`<option value="${h.id}" ${h.id===d.habitId?'selected':''}>${h.name}</option>`).join('')}</select></div>
@@ -1719,7 +1627,7 @@ function renderPlanModal(){
         <button class="btn btn-sm" style="margin-top:6px;" onclick="addPhase()">+ Добавить этап</button>
       </div>
     </div>
-    <div class="modal-foot">${d.id?`<button class="btn btn-danger" style="margin-right:auto;" onclick="deletePlan('${d.id}')">Удалить план</button>`:''}<button class="btn" onclick="closeModal()">Отмена</button><button class="btn btn-primary" onclick="savePlanDraft()">Сохранить</button></div>`;[cite: 1]
+    <div class="modal-foot">${d.id?`<button class="btn btn-danger" style="margin-right:auto;" onclick="deletePlan('${d.id}')">Удалить план</button>`:''}<button class="btn" onclick="closeModal()">Отмена</button><button class="btn btn-primary" onclick="savePlanDraft()">Сохранить</button></div>`;
 }
 function renderPhaseEditor(ph,idx){
   return `<div style="border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px;">
@@ -1732,94 +1640,94 @@ function renderPhaseEditor(ph,idx){
       <button class="btn btn-sm btn-danger" onclick="removePhase(${idx})">✕</button>
     </div>
     <textarea style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:12.5px;min-height:40px;" placeholder="Описание этапа" onchange="updatePhase(${idx},'note',this.value)">${ph.note||''}</textarea>
-  </div>`;[cite: 1]
+  </div>`;
 }
 function addPhase(){
-  window.__planDraft.phases.push({id:uid('ph'), name:'Новый этап', start:todayISO(), end:toISO(addDays(new Date(),14)), note:''});[cite: 1]
-  renderPlanModal();[cite: 1]
+  window.__planDraft.phases.push({id:uid('ph'), name:'Новый этап', start:todayISO(), end:toISO(addDays(new Date(),14)), note:''});
+  renderPlanModal();
 }
-function updatePhase(idx,key,val){ window.__planDraft.phases[idx][key]=val; }[cite: 1]
-function removePhase(idx){ window.__planDraft.phases.splice(idx,1); renderPlanModal(); }[cite: 1]
+function updatePhase(idx,key,val){ window.__planDraft.phases[idx][key]=val; }
+function removePhase(idx){ window.__planDraft.phases.splice(idx,1); renderPlanModal(); }
 function savePlanDraft(){
-  const d = window.__planDraft;[cite: 1]
-  d.habitId = document.getElementById('p_habit').value;[cite: 1]
-  d.goal = document.getElementById('p_goal').value.trim();[cite: 1]
-  if(!d.phases.length){ toast('Добавьте хотя бы один этап'); return; }[cite: 1]
-  if(d.id){ const idx=state.strategicPlan.findIndex(p=>p.id===d.id); state.strategicPlan[idx]=d; }[cite: 1]
-  else { d.id=uid('plan'); state.strategicPlan.push(d); }[cite: 1]
-  saveState(); closeModal(); toast('План сохранён'); render();[cite: 1]
+  const d = window.__planDraft;
+  d.habitId = document.getElementById('p_habit').value;
+  d.goal = document.getElementById('p_goal').value.trim();
+  if(!d.phases.length){ toast('Добавьте хотя бы один этап'); return; }
+  if(d.id){ const idx=state.strategicPlan.findIndex(p=>p.id===d.id); state.strategicPlan[idx]=d; }
+  else { d.id=uid('plan'); state.strategicPlan.push(d); }
+  saveState(); closeModal(); toast('План сохранён'); render();
 }
 function deletePlan(id){
-  if(!confirm('Удалить план?')) return;[cite: 1]
-  state.strategicPlan = state.strategicPlan.filter(p=>p.id!==id); saveState(); closeModal(); render();[cite: 1]
+  if(!confirm('Удалить план?')) return;
+  state.strategicPlan = state.strategicPlan.filter(p=>p.id!==id); saveState(); closeModal(); render();
 }
 
 /* =========================================================
-   МОДАЛКИ
+   МОДАЛКИ: открытие/закрытие
    ========================================================= */
-function openModal(){ document.getElementById('overlay').classList.add('show'); }[cite: 1]
+function openModal(){ document.getElementById('overlay').classList.add('show'); }
 function closeModal(){
-  document.getElementById('overlay').classList.remove('show');[cite: 1]
-  document.getElementById('modalBox').innerHTML = '';[cite: 1]
+  document.getElementById('overlay').classList.remove('show');
+  // очищаем содержимое модалки, чтобы старые скрытые поля не "утекали"
+  // в следующую открытую форму (например, из формы одной привычки в форму другой)
+  document.getElementById('modalBox').innerHTML = '';
 }
-document.getElementById('overlay').addEventListener('click', e=>{ if(e.target.id==='overlay') closeModal(); });[cite: 1]
+document.getElementById('overlay').addEventListener('click', e=>{ if(e.target.id==='overlay') closeModal(); });
 
 /* =========================================================
    ГРАФИКИ (Chart.js)
    ========================================================= */
-let chartRefs = {};[cite: 1]
+let chartRefs = {};
 function drawBarChart(canvasId, labels, data, colors){
-  const ctx = document.getElementById(canvasId); if(!ctx) return;[cite: 1]
-  if(chartRefs[canvasId]) chartRefs[canvasId].destroy();[cite: 1]
+  const ctx = document.getElementById(canvasId); if(!ctx) return;
+  if(chartRefs[canvasId]) chartRefs[canvasId].destroy();
   chartRefs[canvasId] = new Chart(ctx, {
     type:'bar',
     data:{labels, datasets:[{data, backgroundColor:colors||'#1E7F72', borderRadius:5, maxBarThickness:38}]},
     options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%'},grid:{color:'#EEF0F4'}}, x:{grid:{display:false}}}}
-  });[cite: 1]
+  });
 }
 function drawLineChart(canvasId, labels, data){
-  const ctx = document.getElementById(canvasId); if(!ctx) return;[cite: 1]
-  if(chartRefs[canvasId]) chartRefs[canvasId].destroy();[cite: 1]
+  const ctx = document.getElementById(canvasId); if(!ctx) return;
+  if(chartRefs[canvasId]) chartRefs[canvasId].destroy();
   chartRefs[canvasId] = new Chart(ctx, {
     type:'line',
     data:{labels, datasets:[{data, borderColor:'#1E7F72', backgroundColor:'rgba(30,127,114,.12)', fill:true, tension:.3, pointBackgroundColor:'#1E7F72'}]},
     options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%'},grid:{color:'#EEF0F4'}}, x:{grid:{display:false}}}}
-  });[cite: 1]
+  });
 }
 
 /* =========================================================
    ЭКСПОРТ / ИМПОРТ
    ========================================================= */
 document.getElementById('btnExport').addEventListener('click', ()=>{
-  const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});[cite: 1]
-  const url = URL.createObjectURL(blob);[cite: 1]
-  const a = document.createElement('a');[cite: 1]
-  a.href = url; a.download = 'habit-tracker-backup-'+todayISO()+'.json';[cite: 1]
-  document.body.appendChild(a); a.click(); a.remove();[cite: 1]
-  URL.revokeObjectURL(url);[cite: 1]
-  toast('Резервная копия сохранена');[cite: 1]
+  const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'habit-tracker-backup-'+todayISO()+'.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+  toast('Резервная копия сохранена');
 });
-document.getElementById('btnImport').addEventListener('click', ()=> document.getElementById('fileImport').click());[cite: 1]
+document.getElementById('btnImport').addEventListener('click', ()=> document.getElementById('fileImport').click());
 document.getElementById('fileImport').addEventListener('change', (e)=>{
-  const file = e.target.files[0]; if(!file) return;[cite: 1]
-  const reader = new FileReader();[cite: 1]
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
   reader.onload = ()=>{
     try{
-      const data = JSON.parse(reader.result);[cite: 1]
-      if(!data.habits||!data.categories){ toast('Файл не похож на резервную копию'); return; }[cite: 1]
-      state = data;[cite: 1]
-      state.habits.forEach(h=>{ if(h.step===undefined) h.step = h.trackingType==='percentage'? (h.target>=1000?100:1) : 1; });
-      saveState(); toast('Данные загружены'); render();[cite: 1]
-    }catch(err){ toast('Не удалось прочитать файл'); }[cite: 1]
+      const data = JSON.parse(reader.result);
+      if(!data.habits||!data.categories){ toast('Файл не похож на резервную копию'); return; }
+      state = data; saveState(); toast('Данные загружены'); render();
+    }catch(err){ toast('Не удалось прочитать файл'); }
   };
-  reader.readAsText(file);[cite: 1]
-  e.target.value='';[cite: 1]
-  closeModal();[cite: 1]
+  reader.readAsText(file);
+  e.target.value='';
+  closeModal();
 });
 
-document.getElementById('btnClear').addEventListener('click', openClearDataModal);[cite: 1]
+document.getElementById('btnClear').addEventListener('click', openClearDataModal);
 function openClearDataModal(){
-  const box = document.getElementById('modalBox');[cite: 1]
+  const box = document.getElementById('modalBox');
   box.innerHTML = `<div class="modal-head"><h3>Очистить данные</h3><button class="close-x" onclick="closeModal()">✕</button></div>
     <div class="modal-body">
       <p style="font-size:12.5px;color:var(--muted);margin-top:0;">Действие необратимо. Рекомендуем сначала сохранить копию (.json) слева внизу.</p>
@@ -1834,18 +1742,18 @@ function openClearDataModal(){
         <button class="btn btn-danger btn-sm" onclick="performClear('all')">Сбросить всё</button>
       </div>
     </div>
-    <div class="modal-foot"><button class="btn" onclick="closeModal()">Отмена</button></div>`;[cite: 1]
-  openModal();[cite: 1]
+    <div class="modal-foot"><button class="btn" onclick="closeModal()">Отмена</button></div>`;
+  openModal();
 }
 function performClear(mode){
-  const msg = mode==='all' ? 'Удалить абсолютно все данные приложения без возможности восстановления?' : 'Удалить всю историю отметок по всем привычкам без возможности восстановления?';[cite: 1]
-  if(!confirm(msg)) return;[cite: 1]
+  const msg = mode==='all' ? 'Удалить абсолютно все данные приложения без возможности восстановления?' : 'Удалить всю историю отметок по всем привычкам без возможности восстановления?';
+  if(!confirm(msg)) return;
   if(mode==='entries'){
-    state.entries = {}; state.weeklyAssignments = {}; state.monthlyAssignments = {};[cite: 1]
+    state.entries = {}; state.weeklyAssignments = {}; state.monthlyAssignments = {};
   } else {
-    state = {categories:[], habits:[], entries:{}, weeklyAssignments:{}, monthlyAssignments:{}, strategicPlan:[]};[cite: 1]
+    state = {categories:[], habits:[], entries:{}, weeklyAssignments:{}, monthlyAssignments:{}, strategicPlan:[]};
   }
-  saveState(); closeModal(); toast('Данные очищены'); currentView='today'; render();[cite: 1]
+  saveState(); closeModal(); toast('Данные очищены'); currentView='today'; render();
 }
 
 /* =========================================================
@@ -1853,38 +1761,38 @@ function performClear(mode){
    ========================================================= */
 function getSyncConfig(){
   try{
-    const raw = localStorage.getItem('habitops_sync_cfg');[cite: 1]
-    return raw ? JSON.parse(raw) : null;[cite: 1]
-  }catch(e){ return null; }[cite: 1]
+    const raw = localStorage.getItem('habitops_sync_cfg');
+    return raw ? JSON.parse(raw) : null;
+  }catch(e){ return null; }
 }
 function setSyncConfig(cfg){
-  localStorage.setItem('habitops_sync_cfg', JSON.stringify(cfg));[cite: 1]
+  localStorage.setItem('habitops_sync_cfg', JSON.stringify(cfg));
 }
 function clearSyncConfig(){
-  localStorage.removeItem('habitops_sync_cfg');[cite: 1]
+  localStorage.removeItem('habitops_sync_cfg');
 }
 function setSyncStatus(text){
-  const el = document.getElementById('syncState');[cite: 1]
-  if(el) el.textContent = text;[cite: 1]
+  const el = document.getElementById('syncState');
+  if(el) el.textContent = text;
 }
 function genSyncId(){
-  const bytes = new Uint8Array(16);[cite: 1]
-  crypto.getRandomValues(bytes);[cite: 1]
-  return Array.from(bytes, b=>b.toString(16).padStart(2,'0')).join('');[cite: 1]
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, b=>b.toString(16).padStart(2,'0')).join('');
 }
 
-let cloudPushTimer = null;[cite: 1]
+let cloudPushTimer = null;
 function scheduleCloudPush(){
-  const cfg = getSyncConfig();[cite: 1]
-  if(!cfg) return;[cite: 1]
-  clearTimeout(cloudPushTimer);[cite: 1]
-  cloudPushTimer = setTimeout(pushToCloud, 1200);[cite: 1]
+  const cfg = getSyncConfig();
+  if(!cfg) return;
+  clearTimeout(cloudPushTimer);
+  cloudPushTimer = setTimeout(pushToCloud, 1200);
 }
 
 async function pushToCloud(){
-  const cfg = getSyncConfig();[cite: 1]
-  if(!cfg) return;[cite: 1]
-  setSyncStatus('Синхронизация…');[cite: 1]
+  const cfg = getSyncConfig();
+  if(!cfg) return;
+  setSyncStatus('Синхронизация…');
   try{
     const res = await fetch(cfg.url.replace(/\/$/,'')+'/rest/v1/habit_sync?on_conflict=sync_id', {
       method:'POST',
@@ -1895,10 +1803,10 @@ async function pushToCloud(){
         'Prefer':'resolution=merge-duplicates,return=minimal'
       },
       body: JSON.stringify([{sync_id:cfg.syncId, state:state, updated_at:new Date(state.updatedAt||Date.now()).toISOString()}])
-    });[cite: 1]
-    setSyncStatus(res.ok ? 'В облаке · '+new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}) : 'Ошибка синхронизации ('+res.status+')');[cite: 1]
+    });
+    setSyncStatus(res.ok ? 'В облаке · '+new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}) : 'Ошибка синхронизации ('+res.status+')');
   }catch(e){
-    setSyncStatus('Нет сети — сохранено локально');[cite: 1]
+    setSyncStatus('Нет сети — сохранено локально');
   }
 }
 
@@ -1906,91 +1814,96 @@ async function pullFromCloud(cfg){
   try{
     const res = await fetch(cfg.url.replace(/\/$/,'')+'/rest/v1/habit_sync?sync_id=eq.'+encodeURIComponent(cfg.syncId)+'&select=state,updated_at', {
       headers:{ 'apikey':cfg.key, 'Authorization':'Bearer '+cfg.key }
-    });[cite: 1]
-    if(!res.ok) return null;[cite: 1]
-    const rows = await res.json();[cite: 1]
-    return rows && rows[0] ? rows[0] : null;[cite: 1]
-  }catch(e){ return null; }[cite: 1]
+    });
+    if(!res.ok) return null;
+    const rows = await res.json();
+    return rows && rows[0] ? rows[0] : null;
+  }catch(e){ return null; }
 }
 
 async function initSync(){
-  const cfg = getSyncConfig();[cite: 1]
-  if(!cfg){ setSyncStatus('Синхронизация не настроена'); return; }[cite: 1]
-  setSyncStatus('Проверяем облако…');[cite: 1]
-  const remote = await pullFromCloud(cfg);[cite: 1]
-  const remoteTs = remote ? new Date(remote.updated_at).getTime() : 0;[cite: 1]
-  const localTs = state.updatedAt || 0;[cite: 1]
+  const cfg = getSyncConfig();
+  if(!cfg){ setSyncStatus('Синхронизация не настроена'); return; }
+  setSyncStatus('Проверяем облако…');
+  const remote = await pullFromCloud(cfg);
+  const remoteTs = remote ? new Date(remote.updated_at).getTime() : 0;
+  const localTs = state.updatedAt || 0;
   if(remote && remoteTs > localTs){
-    state = remote.state;[cite: 1]
-    state.habits.forEach(h=>{ if(h.step===undefined) h.step = h.trackingType==='percentage'? (h.target>=1000?100:1) : 1; });
-    state.updatedAt = remoteTs;[cite: 1]
-    try{ localStorage.setItem('habitops_state_v1', JSON.stringify(state)); }catch(e){}[cite: 1]
-    toast('Загружены более свежие данные из облака');[cite: 1]
-    render();[cite: 1]
-    setSyncStatus('Синхронизировано · '+new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}));[cite: 1]
+    state = remote.state;
+    state.updatedAt = remoteTs;
+    try{ localStorage.setItem('habitops_state_v1', JSON.stringify(state)); }catch(e){}
+    toast('Загружены более свежие данные из облака');
+    render();
+    setSyncStatus('Синхронизировано · '+new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}));
   } else {
-    if(!state.updatedAt) state.updatedAt = Date.now();[cite: 1]
-    try{ localStorage.setItem('habitops_state_v1', JSON.stringify(state)); }catch(e){}[cite: 1]
-    pushToCloud();[cite: 1]
+    // Локальные данные не старше удалённых (или удалённых ещё нет вовсе) —
+    // отправляем локальную версию в облако. Работает и при самой первой
+    // настройке синхронизации, когда у локальных данных ещё нет метки времени.
+    if(!state.updatedAt) state.updatedAt = Date.now();
+    try{ localStorage.setItem('habitops_state_v1', JSON.stringify(state)); }catch(e){}
+    pushToCloud();
   }
 }
 
-document.getElementById('btnSync').addEventListener('click', openSyncModal);[cite: 1]
+document.getElementById('btnSync').addEventListener('click', openSyncModal);
 function openSyncModal(){
-  const cfg = getSyncConfig() || {url:'', key:'', syncId: genSyncId()};[cite: 1]
-  const box = document.getElementById('modalBox');[cite: 1]
+  const cfg = getSyncConfig() || {url:'', key:'', syncId: genSyncId()};
+  const box = document.getElementById('modalBox');
   box.innerHTML = `<div class="modal-head"><h3>Синхронизация между устройствами</h3><button class="close-x" onclick="closeModal()">✕</button></div>
     <div class="modal-body">
       <p style="font-size:12.5px;color:var(--muted);margin-top:0;">
         Данные хранятся в вашей бесплатной базе на <a href="https://supabase.com" target="_blank" rel="noopener">Supabase</a>.
+        Настройте один раз на компьютере, затем откройте эту же страницу на телефоне и введите те же данные — история подтянется автоматически.
       </p>
       <label style="font-size:12px;font-weight:600;display:block;margin:10px 0 4px;">Project URL</label>
       <input id="syncUrl" type="text" placeholder="https://xxxxx.supabase.co" value="${cfg.url||''}" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:7px;font-size:13px;">
       <label style="font-size:12px;font-weight:600;display:block;margin:10px 0 4px;">Anon public key</label>
       <input id="syncKey" type="text" placeholder="eyJhbGciOi..." value="${cfg.key||''}" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:7px;font-size:13px;">
-      <label style="font-size:12px;font-weight:600;display:block;margin:10px 0 4px;">Sync ID</label>
+      <label style="font-size:12px;font-weight:600;display:block;margin:10px 0 4px;">Sync ID (секретный, придумайте свой или сгенерируйте)</label>
       <div style="display:flex;gap:6px;">
         <input id="syncId" type="text" value="${cfg.syncId||''}" style="flex:1;padding:8px 10px;border:1px solid var(--border);border-radius:7px;font-size:13px;">
         <button class="btn btn-sm" onclick="document.getElementById('syncId').value=genSyncId()">Сгенерировать</button>
       </div>
+      <p style="font-size:11.5px;color:var(--muted);margin:8px 0 0;">Этот же Sync ID нужно ввести на телефоне — он как пароль к вашим данным. Никому не показывайте.</p>
     </div>
     <div class="modal-foot">
       ${cfg.url ? '<button class="btn btn-danger btn-sm" onclick="disconnectSync()">Отключить</button>' : '<span></span>'}
       <button class="btn" onclick="closeModal()">Отмена</button>
       <button class="btn btn-primary" onclick="saveSyncConfig()">Сохранить и синхронизировать</button>
-    </div>`;[cite: 1]
-  openModal();[cite: 1]
+    </div>`;
+  openModal();
 }
 function saveSyncConfig(){
-  const url = document.getElementById('syncUrl').value.trim();[cite: 1]
-  const key = document.getElementById('syncKey').value.trim();[cite: 1]
-  const syncId = document.getElementById('syncId').value.trim();[cite: 1]
-  if(!url || !key || !syncId){ toast('Заполните все поля'); return; }[cite: 1]
-  setSyncConfig({url, key, syncId});[cite: 1]
-  closeModal();[cite: 1]
-  toast('Настройки сохранены, синхронизируем…');[cite: 1]
-  initSync();[cite: 1]
+  const url = document.getElementById('syncUrl').value.trim();
+  const key = document.getElementById('syncKey').value.trim();
+  const syncId = document.getElementById('syncId').value.trim();
+  if(!url || !key || !syncId){ toast('Заполните все поля'); return; }
+  setSyncConfig({url, key, syncId});
+  closeModal();
+  toast('Настройки сохранены, синхронизируем…');
+  initSync();
 }
 function disconnectSync(){
-  if(!confirm('Отключить синхронизацию на этом устройстве? Локальные данные останутся, облачные — нет.')) return;[cite: 1]
-  clearSyncConfig();[cite: 1]
-  setSyncStatus('Синхронизация не настроена');[cite: 1]
-  closeModal();[cite: 1]
-  toast('Синхронизация отключена');[cite: 1]
+  if(!confirm('Отключить синхронизацию на этом устройстве? Локальные данные останутся, облачные — нет.')) return;
+  clearSyncConfig();
+  setSyncStatus('Синхронизация не настроена');
+  closeModal();
+  toast('Синхронизация отключена');
 }
 
+/* PWA: регистрируем service worker, если он доступен на хостинге */
 if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{
-    navigator.serviceWorker.register('sw.js').catch(()=>{});[cite: 1]
+    navigator.serviceWorker.register('sw.js').catch(()=>{ /* нет sw.js рядом — не критично */ });
   });
 }
 
 /* =========================================================
    СТАРТ
    ========================================================= */
-loadState();[cite: 1]
-render();[cite: 1]
-initSync();[cite: 1]
+loadState();
+render();
+initSync();
 </script>
 </body>
 </html>
