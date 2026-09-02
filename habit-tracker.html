@@ -190,6 +190,14 @@ input,select,textarea{font-family:inherit;}
 .seg-toggle .seg-label{position:absolute;bottom:-15px;font-size:8.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;}
 
 .pct-wrap{display:flex;align-items:center;gap:8px;min-width:180px;}
+.pct-input-row{display:flex;align-items:center;gap:4px;flex-shrink:0;}
+.pct-step{
+  width:24px;height:24px;flex-shrink:0;border:1px solid var(--border);border-radius:6px;background:var(--surface);
+  color:var(--text);font-size:14px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;
+}
+.pct-step:hover{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);}
+.pct-step:active{transform:scale(0.94);}
+.pct-step.sm{width:19px;height:19px;font-size:11px;border-radius:5px;}
 .pct-bar{flex:1;height:8px;border-radius:5px;background:var(--bg);overflow:hidden;border:1px solid var(--border);}
 .pct-bar-fill{height:100%;background:var(--accent);border-radius:5px;transition:width .15s;}
 .pct-input{width:56px;padding:5px 6px;border:1px solid var(--border);border-radius:6px;font-size:12px;text-align:right;font-family:'IBM Plex Mono',monospace;}
@@ -213,10 +221,11 @@ th{
 }
 td{padding:9px 10px;border-bottom:1px solid var(--border);}
 tr:last-child td{border-bottom:none;}
-.week-cell{text-align:center;width:46px;}
-.day-check{width:24px;height:24px;border-radius:6px;border:1.5px solid var(--border);display:inline-flex;align-items:center;justify-content:center;font-size:12px;color:var(--muted);background:var(--surface);}
+.week-cell{text-align:center;width:56px;}
+.day-check{width:34px;height:34px;border-radius:8px;border:1.5px solid var(--border);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--muted);background:var(--surface);font-family:'IBM Plex Mono',monospace;overflow:hidden;position:relative;letter-spacing:-.2px;}
 .day-check.done{background:var(--accent);border-color:var(--accent);color:#fff;}
 .day-check.future{opacity:.35;}
+.day-check .pc-glyph{font-size:15px;font-weight:700;color:var(--accent);}
 
 /* ---------- Tabs / week-month switch ---------- */
 .pill-switch{display:inline-flex;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:3px;gap:2px;}
@@ -413,11 +422,11 @@ function seedData(){
     {id:'cat_mind', name:'Ментальное здоровье', color:CAT_COLORS[2]},
   ];
   const habits = [
-    {id:'h_water', name:'Водный баланс', description:'Пить воду равномерно в течение дня, не менее 2000 мл. Кофе и чай не считаются.', categoryId:'cat_nutrition', trackingType:'percentage', target:2000, unit:'мл', cadence:'daily', segments:['Утро','День','Вечер'], active:true, createdAt:todayISO()},
+    {id:'h_water', name:'Водный баланс', description:'Пить воду равномерно в течение дня, не менее 2000 мл. Кофе и чай не считаются.', categoryId:'cat_nutrition', trackingType:'percentage', target:2000, unit:'мл', stepSize:100, cadence:'daily', segments:['Утро','День','Вечер'], active:true, createdAt:todayISO()},
     {id:'h_sugar', name:'Отказ от сладкого', description:'Никакого сахара, сладкой выпечки и сладких напитков в течение дня. Фрукты — можно.', categoryId:'cat_nutrition', trackingType:'binary', target:null, unit:'', cadence:'daily', segments:[], active:true, createdAt:todayISO()},
     {id:'h_meals', name:'Режим питания', description:'Приём пищи в фиксированные окна: завтрак, обед, ужин — без перекусов между ними.', categoryId:'cat_nutrition', trackingType:'binary', target:null, unit:'', cadence:'daily', segments:['Утро','День','Вечер'], active:true, createdAt:todayISO()},
     {id:'h_gym', name:'Тренировка в зале', description:'Силовая тренировка от 40 минут: разминка, основной блок, заминка.', categoryId:'cat_sport', trackingType:'binary', target:null, unit:'', cadence:'weekly', freq:2, segments:[], active:true, createdAt:todayISO()},
-    {id:'h_steps', name:'10 000 шагов', description:'Суммарно за день — по данным телефона или часов, включая прогулки и бытовую активность.', categoryId:'cat_sport', trackingType:'percentage', target:10000, unit:'шагов', cadence:'daily', segments:[], active:true, createdAt:todayISO()},
+    {id:'h_steps', name:'10 000 шагов', description:'Суммарно за день — по данным телефона или часов, включая прогулки и бытовую активность.', categoryId:'cat_sport', trackingType:'percentage', target:10000, unit:'шагов', stepSize:500, cadence:'daily', segments:[], active:true, createdAt:todayISO()},
     {id:'h_journal', name:'Дневник благодарности', description:'Коротко записать 3 вещи, за которые благодарен сегодня — утром и вечером.', categoryId:'cat_mind', trackingType:'binary', target:null, unit:'', cadence:'daily', segments:['Утро','Вечер'], active:true, createdAt:todayISO()},
     {id:'h_read', name:'Чтение книги', description:'Минимум 20 страниц художественной или нон-фикшн литературы за раз, не считая рабочих текстов.', categoryId:'cat_mind', trackingType:'binary', target:null, unit:'', cadence:'monthly', freq:8, segments:[], active:true, createdAt:todayISO()},
   ];
@@ -534,6 +543,7 @@ function loadExampleData(){
    НАВИГАЦИЯ
    ========================================================= */
 let currentView = 'today';
+let todayCursor = new Date();
 let weekCursor = new Date();
 let monthCursor = new Date();
 
@@ -614,19 +624,21 @@ function getEntry(habitId,date,segment){
 function setEntry(habitId,date,segment,value){
   state.entries[entryKey(habitId,date,segment)] = value; saveState();
 }
-function habitDayValue(habit, date){
-  // возвращает 0..100 (процент выполнения привычки за день, с учётом сегментов)
+function habitDayValue(habit, date, raw){
+  // возвращает 0..100 (или больше, если raw=true) — процент выполнения привычки за день, с учётом сегментов
   if(habit.trackingType==='percentage'){
     if(habit.segments && habit.segments.length){
       // Проценты с частями дня: общий итог за день = сумма фактических значений по частям.
       let any=false, actualTotal=0;
       habit.segments.forEach(s=>{ const v=getEntry(habit.id,date,s); if(v!==null){ any=true; actualTotal+=v; } });
       if(!any) return null;
-      return Math.max(0, Math.min(100, Math.round(actualTotal/habit.target*100)));
+      const pct = Math.round(actualTotal/habit.target*100);
+      return raw ? Math.max(0,pct) : Math.max(0, Math.min(100, pct));
     }
     const v = getEntry(habit.id,date,null);
     if(v===null) return null;
-    return Math.max(0,Math.min(100, Math.round((v/habit.target)*100)));
+    const pct = Math.round((v/habit.target)*100);
+    return raw ? Math.max(0,pct) : Math.max(0, Math.min(100, pct));
   }
   const segs = (habit.segments&&habit.segments.length) ? habit.segments : [null];
   let done=0, total=segs.length, any=false;
@@ -645,37 +657,48 @@ function habitDayValue(habit, date){
    ------------------------------------------------------------- */
 function endOfToday(){ const t=new Date(); t.setHours(23,59,59,999); return t; }
 
-function habitWeekCompletion(h, weekStart){
-  // h.cadence === 'weekly'. Возвращает 0..100 либо null, если по этой неделе ещё нет данных.
+function habitWeekCompletion(h, weekStart, raw){
+  // h.cadence === 'weekly'. Возвращает 0..100 (или больше, если raw) либо null, если по этой неделе ещё нет данных.
   let sum=0, counted=false;
   const today = endOfToday();
+  const todayIso = todayISO();
   for(let i=0;i<7;i++){
     const d = addDays(weekStart,i);
     if(d>today) continue;
     if(!isHabitScheduledOn(h,d)) continue;
+    const iso = toISO(d);
+    const v = habitDayValue(h, iso, raw);
+    // Сегодняшний день, пока по нему нет ни одной отметки, ещё не закончился —
+    // не засчитываем его как невыполненный (0%), а просто пока не учитываем,
+    // как и ещё не наступившие дни недели.
+    if(iso===todayIso && v===null) continue;
     counted = true;
-    const v = habitDayValue(h, toISO(d));
     sum += (v===null?0:v);
   }
   if(!counted) return null;
-  return Math.min(100, Math.round(sum / h.freq));
+  const res = Math.round(sum / h.freq);
+  return raw ? res : Math.min(100, res);
 }
-function habitMonthCompletion(h, monthStartDate){
-  // h.cadence === 'monthly'. Возвращает 0..100 либо null.
+function habitMonthCompletion(h, monthStartDate, raw){
+  // h.cadence === 'monthly'. Возвращает 0..100 (или больше, если raw) либо null.
   const y=monthStartDate.getFullYear(), m=monthStartDate.getMonth();
   const nd = daysInMonth(y,m);
   let sum=0, counted=false;
   const today = endOfToday();
+  const todayIso = todayISO();
   for(let dnum=1; dnum<=nd; dnum++){
     const d = new Date(y,m,dnum);
     if(d>today) continue;
     if(!isHabitScheduledOn(h,d)) continue;
+    const iso = toISO(d);
+    const v = habitDayValue(h, iso, raw);
+    if(iso===todayIso && v===null) continue;
     counted = true;
-    const v = habitDayValue(h, toISO(d));
     sum += (v===null?0:v);
   }
   if(!counted) return null;
-  return Math.min(100, Math.round(sum / h.freq));
+  const res = Math.round(sum / h.freq);
+  return raw ? res : Math.min(100, res);
 }
 function weeksOverlappingMonth(y,m){
   const first = new Date(y,m,1), last = new Date(y,m,daysInMonth(y,m));
@@ -684,32 +707,32 @@ function weeksOverlappingMonth(y,m){
   while(ws<=last){ weeks.push(new Date(ws)); ws = addDays(ws,7); }
   return weeks;
 }
-function habitWeeklyHabitMonthAvg(h, y, m){
+function habitWeeklyHabitMonthAvg(h, y, m, raw){
   // Для привычки "N раз/неделю" — средняя по всем неделям, затрагивающим этот месяц.
-  const vals = weeksOverlappingMonth(y,m).map(ws=>habitWeekCompletion(h,ws)).filter(v=>v!==null);
+  const vals = weeksOverlappingMonth(y,m).map(ws=>habitWeekCompletion(h,ws,raw)).filter(v=>v!==null);
   if(!vals.length) return null;
   return Math.round(vals.reduce((a,b)=>a+b,0)/vals.length);
 }
-function habitWeeklyAllTimeAvg(h, startDate, endDate){
+function habitWeeklyAllTimeAvg(h, startDate, endDate, raw){
   let ws = startOfWeek(startDate); const vals=[];
-  while(ws<=endDate){ const v=habitWeekCompletion(h,ws); if(v!==null) vals.push(v); ws=addDays(ws,7); }
+  while(ws<=endDate){ const v=habitWeekCompletion(h,ws,raw); if(v!==null) vals.push(v); ws=addDays(ws,7); }
   if(!vals.length) return null;
   return Math.round(vals.reduce((a,b)=>a+b,0)/vals.length);
 }
-function habitMonthlyAllTimeAvg(h, startDate, endDate){
+function habitMonthlyAllTimeAvg(h, startDate, endDate, raw){
   let mc = new Date(startDate.getFullYear(), startDate.getMonth(),1);
   const endM = new Date(endDate.getFullYear(), endDate.getMonth(),1);
   const vals=[];
-  while(mc<=endM){ const v=habitMonthCompletion(h,mc); if(v!==null) vals.push(v); mc=new Date(mc.getFullYear(),mc.getMonth()+1,1); }
+  while(mc<=endM){ const v=habitMonthCompletion(h,mc,raw); if(v!==null) vals.push(v); mc=new Date(mc.getFullYear(),mc.getMonth()+1,1); }
   if(!vals.length) return null;
   return Math.round(vals.reduce((a,b)=>a+b,0)/vals.length);
 }
-function habitDailyRangeAvg(h, rangeStart, rangeEndInclusive){
+function habitDailyRangeAvg(h, rangeStart, rangeEndInclusive, raw){
   // Для ежедневных привычек — как и раньше, среднее по дням, где есть отметка.
   let sum=0,cnt=0; const today=endOfToday();
   let d = new Date(rangeStart);
   while(d<=rangeEndInclusive){
-    if(d<=today){ const v=habitDayValue(h,toISO(d)); if(v!==null){ sum+=v; cnt++; } }
+    if(d<=today){ const v=habitDayValue(h,toISO(d),raw); if(v!==null){ sum+=v; cnt++; } }
     d = addDays(d,1);
   }
   return cnt? Math.round(sum/cnt) : null;
@@ -717,18 +740,18 @@ function habitDailyRangeAvg(h, rangeStart, rangeEndInclusive){
 // Универсальный показатель привычки за конкретную неделю (для таблицы/графика недели
 // и для помесячной "динамики по неделям"). Для monthly-привычек это лишь фрагмент —
 // среднее по дням этой недели, которые ей назначены (полноценная норма считается по месяцу).
-function habitScoreForWeek(h, weekStart){
-  if(h.cadence==='weekly') return habitWeekCompletion(h, weekStart);
-  if(h.cadence==='monthly') return habitDailyRangeAvg(h, weekStart, addDays(weekStart,6));
-  return habitDailyRangeAvg(h, weekStart, addDays(weekStart,6));
+function habitScoreForWeek(h, weekStart, raw){
+  if(h.cadence==='weekly') return habitWeekCompletion(h, weekStart, raw);
+  if(h.cadence==='monthly') return habitDailyRangeAvg(h, weekStart, addDays(weekStart,6), raw);
+  return habitDailyRangeAvg(h, weekStart, addDays(weekStart,6), raw);
 }
 // Универсальный показатель привычки за конкретный месяц (для таблицы/графика месяца
 // и для "средней эффективности за месяц" в общей истории).
-function habitScoreForMonth(h, y, m){
+function habitScoreForMonth(h, y, m, raw){
   const monthStart = new Date(y,m,1), monthEnd = new Date(y,m,daysInMonth(y,m));
-  if(h.cadence==='monthly') return habitMonthCompletion(h, monthStart);
-  if(h.cadence==='weekly') return habitWeeklyHabitMonthAvg(h, y, m);
-  return habitDailyRangeAvg(h, monthStart, monthEnd);
+  if(h.cadence==='monthly') return habitMonthCompletion(h, monthStart, raw);
+  if(h.cadence==='weekly') return habitWeeklyHabitMonthAvg(h, y, m, raw);
+  return habitDailyRangeAvg(h, monthStart, monthEnd, raw);
 }
 // Показатель привычки за весь период наблюдения (для вкладки «Итоги»).
 function habitScoreAllTime(h, startDate, endDate){
@@ -774,14 +797,14 @@ function bestMonthEver(){
 function bestWeekForHabit(h){
   let ws = startOfWeek(trackingStartDate()); const end = new Date();
   let best=null;
-  while(ws<=end){ const v=habitScoreForWeek(h,ws); if(v!==null && (best===null||v>best)) best=v; ws=addDays(ws,7); }
+  while(ws<=end){ const v=habitScoreForWeek(h,ws,true); if(v!==null && (best===null||v>best)) best=v; ws=addDays(ws,7); }
   return best;
 }
 function bestMonthForHabit(h){
   const start = trackingStartDate(); const end = new Date();
   let mc = new Date(start.getFullYear(), start.getMonth(), 1); const endM = new Date(end.getFullYear(), end.getMonth(), 1);
   let best=null;
-  while(mc<=endM){ const v=habitScoreForMonth(h, mc.getFullYear(), mc.getMonth()); if(v!==null && (best===null||v>best)) best=v; mc=new Date(mc.getFullYear(), mc.getMonth()+1, 1); }
+  while(mc<=endM){ const v=habitScoreForMonth(h, mc.getFullYear(), mc.getMonth(), true); if(v!==null && (best===null||v>best)) best=v; mc=new Date(mc.getFullYear(), mc.getMonth()+1, 1); }
   return best;
 }
 function trendArrow(delta){
@@ -810,13 +833,20 @@ function setTop(eyebrow,title,desc,actionsHTML){
    ВИД: СЕГОДНЯ
    ========================================================= */
 function renderToday(){
-  const d = new Date();
-  const iso = todayISO();
-  setTop('Ежедневный учёт','Сегодня, '+DOW_FULL[(d.getDay()+6)%7].toLowerCase()+', '+fmtDate(iso),'Отмечайте выполнение привычек по категориям');
+  const d = new Date(todayCursor);
+  const iso = toISO(d);
+  const isRealToday = iso===todayISO();
+  const dayNav = `<div class="fin-nav" style="margin-left:auto;">
+    <button onclick="changeTodayCursor(-1)">‹</button>
+    <span class="fin-month-label" style="min-width:auto;">${isRealToday?'Сегодня':fmtDate(iso)}</span>
+    <button onclick="changeTodayCursor(1)" ${isRealToday?'disabled style="opacity:.35;cursor:default;"':''}>›</button>
+    ${isRealToday?'':'<button class="btn btn-sm" onclick="goToToday()" style="margin-left:6px;">Сегодня</button>'}
+  </div>`;
+  setTop('Ежедневный учёт','Сегодня, '+DOW_FULL[(d.getDay()+6)%7].toLowerCase()+', '+fmtDate(iso), 'Отмечайте выполнение привычек по категориям', dayNav);
   const c = document.getElementById('content');
   let html = '';
 
-  const needing = habitsNeedingAssignment(d);
+  const needing = isRealToday ? habitsNeedingAssignment(d) : [];
   if(needing.length){
     html += `<div class="banner"><div><strong>Нужно выбрать дни выполнения</strong><p>Для ${needing.length} привыч${needing.length===1?'ки':'ек'} с гибким графиком не назначены дни на текущий период.</p></div><button class="btn btn-primary btn-sm" onclick="openAssignModal()">Назначить дни</button></div>`;
   }
@@ -826,8 +856,8 @@ function renderToday(){
   const completion = scheduledToday.length ? Math.round(scheduledToday.reduce((s,h)=>s+(habitDayValue(h,iso)||0),0)/scheduledToday.length) : 0;
 
   html += `<div class="grid cols-3" style="margin-bottom:26px;">
-    <div class="stat"><div class="label">Запланировано сегодня</div><div class="value">${scheduledToday.length}</div><div class="sub">из ${activeHabits.length} активных привычек</div></div>
-    <div class="stat"><div class="label">Средний прогресс дня</div><div class="value">${completion}%</div><div class="sub">по всем сегодняшним привычкам</div></div>
+    <div class="stat"><div class="label">Запланировано${isRealToday?' сегодня':' на этот день'}</div><div class="value">${scheduledToday.length}</div><div class="sub">из ${activeHabits.length} активных привычек</div></div>
+    <div class="stat"><div class="label">Средний прогресс дня</div><div class="value">${completion}%</div><div class="sub">по всем привычкам за этот день</div></div>
     <div class="stat"><div class="label">Категорий в работе</div><div class="value">${new Set(scheduledToday.map(h=>h.categoryId)).size}</div><div class="sub">из ${state.categories.length} всего</div></div>
   </div>`;
 
@@ -839,9 +869,9 @@ function renderToday(){
       const hs = scheduledToday.filter(h=>h.categoryId===cat.id);
       const allInCat = activeHabits.filter(h=>h.categoryId===cat.id);
       if(!allInCat.length) return;
-      html += `<div class="cat-block"><div class="cat-head"><span class="cat-dot" style="background:${cat.color}"></span><h3>${cat.name}</h3><span class="cat-count">${hs.length}/${allInCat.length} сегодня</span></div>`;
+      html += `<div class="cat-block"><div class="cat-head"><span class="cat-dot" style="background:${cat.color}"></span><h3>${cat.name}</h3><span class="cat-count">${hs.length}/${allInCat.length}${isRealToday?' сегодня':''}</span></div>`;
       if(!hs.length){
-        html += `<div style="font-size:12px;color:var(--muted);padding:4px 2px 8px 2px;">Сегодня по этой категории привычек не запланировано.</div>`;
+        html += `<div style="font-size:12px;color:var(--muted);padding:4px 2px 8px 2px;">На этот день по этой категории привычек не запланировано.</div>`;
       }
       hs.forEach(h=> html += habitRowToday(h, iso));
       html += `</div>`;
@@ -849,30 +879,50 @@ function renderToday(){
   }
   c.innerHTML = html;
 }
+function changeTodayCursor(delta){
+  const next = addDays(todayCursor, delta);
+  if(next > endOfToday()) return; // нельзя уйти в будущее
+  todayCursor = next;
+  render();
+}
+function goToToday(){
+  todayCursor = new Date();
+  render();
+}
 
 function habitRowToday(h, iso){
   const cadgeLabel = h.cadence==='daily' ? 'Ежедневно' : h.cadence==='weekly' ? `${h.freq}×/неделю` : `${h.freq}×/месяц`;
   let controls = '';
   if(h.trackingType==='percentage' && h.segments && h.segments.length){
+    const step = h.stepSize||1;
     let total=0;
     const segInputs = h.segments.map(s=>{
       const v = getEntry(h.id,iso,s) || 0; total += v;
       return `<div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
-        <input class="pct-input" style="width:56px;" type="number" min="0" value="${v}" onchange="onSegPctChange('${h.id}','${iso}','${s}',this.value)">
+        <div class="pct-input-row">
+          <button class="pct-step sm" onclick="bumpPct('${h.id}','${iso}','${s}',-${step})">−</button>
+          <input class="pct-input" style="width:48px;" type="number" min="0" value="${v}" onchange="onSegPctChange('${h.id}','${iso}','${s}',this.value)">
+          <button class="pct-step sm" onclick="bumpPct('${h.id}','${iso}','${s}',${step})">+</button>
+        </div>
         <span style="font-size:9px;color:var(--muted);text-align:center;white-space:nowrap;">${s}</span>
       </div>`;
     }).join('');
-    const pct = Math.max(0,Math.min(100, Math.round(total/h.target*100)));
+    const pct = Math.max(0, Math.round(total/h.target*100));
     controls = `<div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
       <div style="display:flex;gap:10px;">${segInputs}</div>
       <span class="tag mono">Итого: ${total}/${h.target} ${h.unit} · ${pct}%</span>
     </div>`;
   } else if(h.trackingType==='percentage'){
+    const step = h.stepSize||1;
     const v = getEntry(h.id, iso, null) || 0;
-    const pct = Math.max(0,Math.min(100, Math.round((v/h.target)*100)));
+    const pct = Math.max(0, Math.round((v/h.target)*100));
     controls = `<div class="pct-wrap">
-      <input class="pct-input" type="number" min="0" value="${v}" onchange="onPctChange('${h.id}','${iso}',this.value)">
-      <div class="pct-bar"><div class="pct-bar-fill" style="width:${pct}%"></div></div>
+      <div class="pct-input-row">
+        <button class="pct-step" onclick="bumpPct('${h.id}','${iso}',null,-${step})">−</button>
+        <input class="pct-input" type="number" min="0" value="${v}" onchange="onPctChange('${h.id}','${iso}',this.value)">
+        <button class="pct-step" onclick="bumpPct('${h.id}','${iso}',null,${step})">+</button>
+      </div>
+      <div class="pct-bar"><div class="pct-bar-fill" style="width:${Math.min(100,pct)}%"></div></div>
       <span class="tag mono">${pct}%</span>
     </div>`;
   } else if(h.segments && h.segments.length){
@@ -908,6 +958,12 @@ function onSegToggle(habitId, iso, seg){
 function onPctChange(habitId, iso, val){
   const n = Math.max(0, Number(val)||0);
   setEntry(habitId, iso, null, n);
+  render();
+}
+function bumpPct(habitId, iso, seg, delta){
+  const cur = getEntry(habitId, iso, seg) || 0;
+  const next = Math.max(0, Math.round((cur + delta)*100)/100);
+  setEntry(habitId, iso, seg, next);
   render();
 }
 
@@ -965,9 +1021,26 @@ function renderWeek(){
       if(!scheduled){ html+=`<td class="week-cell">–</td>`; continue; }
       const val = habitDayValue(h,iso);
       const clickable = !future;
+      const isPct = h.trackingType==='percentage';
+      const hasSegments = h.segments && h.segments.length;
       const cls = val===100?'done':'';
-      const label = val===null?'':(h.trackingType==='percentage'?val+'%':(val===100?'✓':''));
-      html += `<td class="week-cell"><span class="day-check ${cls} ${future?'future':''}" ${clickable?`onclick="quickDayToggle('${h.id}','${iso}')"`:''} style="${h.trackingType==='percentage'?'font-size:9px;':''}">${label}</span></td>`;
+      let label = '', cellStyle = '';
+      if(val!==null){
+        if(isPct){
+          label = val+'%';
+          cellStyle = 'font-size:10px;';
+        } else if(val===100){
+          label = '✓';
+        } else if(hasSegments && val>0){
+          // Привычка да/нет с частями дня, выполнена частично — вместо цифр показываем
+          // галочку поверх квадратика, залитого снизу вверх тем же зелёным, что и у "процента от цели".
+          label = '<span class="pc-glyph">✓</span>';
+        }
+        if(val>0 && val<100){
+          cellStyle += `background:linear-gradient(to top, rgba(30,127,114,.42) ${val}%, var(--surface) ${val}%);`;
+        }
+      }
+      html += `<td class="week-cell"><span class="day-check ${cls} ${future?'future':''}" ${clickable?`onclick="quickDayToggle('${h.id}','${iso}')"`:''} style="${cellStyle}">${label}</span></td>`;
     }
     // Итог: для weekly-привычек — доля от нормы (freq) за эту неделю, а не среднее по отмеченным дням.
     let summaryVal;
@@ -1242,7 +1315,7 @@ function openHabitModal(id){
   // радиокнопкам/чипам должны только перерисовывать окно из этого черновика,
   // а не пересоздавать его заново — иначе выбор сбрасывается.
   const editing = id ? state.habits.find(h=>h.id===id) : null;
-  const draft = editing ? JSON.parse(JSON.stringify(editing)) : {id:null, name:'', description:'', categoryId:state.categories[0]?.id||'', trackingType:'binary', target:100, unit:'', cadence:'daily', freq:2, segments:[], active:true};
+  const draft = editing ? JSON.parse(JSON.stringify(editing)) : {id:null, name:'', description:'', categoryId:state.categories[0]?.id||'', trackingType:'binary', target:100, unit:'', stepSize:1, cadence:'daily', freq:2, segments:[], active:true};
   window.__habitDraft = draft;
   window.__habitEditingId = editing ? editing.id : null;
   renderHabitModal();
@@ -1259,6 +1332,8 @@ function renderHabitModal(){
   if(descEl) draft.description = descEl.value;
   const targetEl = document.getElementById('f_target');
   if(targetEl) draft.target = Number(targetEl.value)||draft.target;
+  const stepEl = document.getElementById('f_step');
+  if(stepEl) draft.stepSize = Number(stepEl.value)||draft.stepSize;
   const unitEl = document.getElementById('f_unit');
   if(unitEl) draft.unit = unitEl.value;
   const freqEl = document.getElementById('f_freq');
@@ -1279,10 +1354,12 @@ function renderHabitModal(){
           <div class="radio-opt ${draft.trackingType==='percentage'?'sel':''}" onclick="setDraftField('trackingType','percentage')">Процент от цели</div>
         </div>
       </div>
-      <div id="f_targetWrap" style="display:${draft.trackingType==='percentage'?'flex':'none'};gap:10px;">
-        <div class="field" style="flex:1;"><label>Целевое значение</label><input type="number" id="f_target" value="${draft.target||100}"></div>
-        <div class="field" style="flex:1;"><label>Единица</label><input type="text" id="f_unit" value="${draft.unit||''}" placeholder="шаги, мл, стр."></div>
+      <div id="f_targetWrap" style="display:${draft.trackingType==='percentage'?'flex':'none'};gap:10px;flex-wrap:wrap;">
+        <div class="field" style="flex:1;min-width:110px;"><label>Целевое значение</label><input type="number" id="f_target" value="${draft.target||100}"></div>
+        <div class="field" style="flex:1;min-width:110px;"><label>Единица</label><input type="text" id="f_unit" value="${draft.unit||''}" placeholder="шаги, мл, стр."></div>
+        <div class="field" style="flex:1;min-width:110px;"><label>Шаг регулировки</label><input type="number" id="f_step" min="1" value="${draft.stepSize||1}"></div>
       </div>
+      <div class="hint" id="f_stepHint" style="display:${draft.trackingType==='percentage'?'block':'none'};margin-top:-6px;">Насколько будет меняться значение при нажатии на стрелочки ± в разделе «Сегодня» (например: 1 — для стаканов воды, 500 — для шагов).</div>
 
       <div class="field"><label>Периодичность</label>
         <div class="radio-row">
@@ -1337,6 +1414,7 @@ function saveHabitDraft(){
   if(d.trackingType==='percentage'){
     d.target = Number(document.getElementById('f_target').value)||100;
     d.unit = document.getElementById('f_unit').value.trim();
+    d.stepSize = Number(document.getElementById('f_step').value)||1;
   }
   if(d.cadence!=='daily'){ d.freq = Number(document.getElementById('f_freq').value)||1; d.segments=[]; }
   if(d.id){
