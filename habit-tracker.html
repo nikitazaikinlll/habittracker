@@ -517,9 +517,17 @@ let state = null;
 function loadState(){
   try{
     const raw = localStorage.getItem('habitops_state_v1');
-    if(raw){ state = JSON.parse(raw); return; }
+    if(raw){ state = JSON.parse(raw); migrateTargetHistory(); return; }
   }catch(e){ /* localStorage недоступен в этом окружении — работаем в памяти */ }
   state = seedData();
+  migrateTargetHistory();
+}
+function migrateTargetHistory(){
+  (state.habits||[]).forEach(h=>{
+    if(h.trackingType==='percentage' && (!h.targetHistory || !h.targetHistory.length)){
+      h.targetHistory = [{date:(h.createdAt||'1970-01-01').slice(0,10), target:h.target}];
+    }
+  });
 }
 function saveState(){
   state.updatedAt = Date.now();
@@ -624,20 +632,32 @@ function getEntry(habitId,date,segment){
 function setEntry(habitId,date,segment,value){
   state.entries[entryKey(habitId,date,segment)] = value; saveState();
 }
+function targetForDate(habit, date){
+  // Возвращает значение цели, которое действовало на указанную дату — если цель позже
+  // меняли, за прошлые дни используется та цель, что была актуальна тогда, а не текущая.
+  const hist = habit.targetHistory;
+  if(!hist || !hist.length) return habit.target;
+  let t = hist[0].target;
+  for(let i=0;i<hist.length;i++){
+    if(hist[i].date<=date) t = hist[i].target; else break;
+  }
+  return t;
+}
 function habitDayValue(habit, date, raw){
   // возвращает 0..100 (или больше, если raw=true) — процент выполнения привычки за день, с учётом сегментов
   if(habit.trackingType==='percentage'){
+    const target = targetForDate(habit, date);
     if(habit.segments && habit.segments.length){
       // Проценты с частями дня: общий итог за день = сумма фактических значений по частям.
       let any=false, actualTotal=0;
       habit.segments.forEach(s=>{ const v=getEntry(habit.id,date,s); if(v!==null){ any=true; actualTotal+=v; } });
       if(!any) return null;
-      const pct = Math.round(actualTotal/habit.target*100);
+      const pct = Math.round(actualTotal/target*100);
       return raw ? Math.max(0,pct) : Math.max(0, Math.min(100, pct));
     }
     const v = getEntry(habit.id,date,null);
     if(v===null) return null;
-    const pct = Math.round((v/habit.target)*100);
+    const pct = Math.round((v/target)*100);
     return raw ? Math.max(0,pct) : Math.max(0, Math.min(100, pct));
   }
   const segs = (habit.segments&&habit.segments.length) ? habit.segments : [null];
@@ -659,19 +679,15 @@ function endOfToday(){ const t=new Date(); t.setHours(23,59,59,999); return t; }
 
 function habitWeekCompletion(h, weekStart, raw){
   // h.cadence === 'weekly'. Возвращает 0..100 (или больше, если raw) либо null, если по этой неделе ещё нет данных.
+  // Каждый уже наступивший (в т.ч. сегодняшний) запланированный день учитывается в сумме —
+  // если по нему пока нет записи, он просто даёт 0, а не исключается из расчёта.
   let sum=0, counted=false;
   const today = endOfToday();
-  const todayIso = todayISO();
   for(let i=0;i<7;i++){
     const d = addDays(weekStart,i);
     if(d>today) continue;
     if(!isHabitScheduledOn(h,d)) continue;
-    const iso = toISO(d);
-    const v = habitDayValue(h, iso, raw);
-    // Сегодняшний день, пока по нему нет ни одной отметки, ещё не закончился —
-    // не засчитываем его как невыполненный (0%), а просто пока не учитываем,
-    // как и ещё не наступившие дни недели.
-    if(iso===todayIso && v===null) continue;
+    const v = habitDayValue(h, toISO(d), raw);
     counted = true;
     sum += (v===null?0:v);
   }
@@ -685,14 +701,11 @@ function habitMonthCompletion(h, monthStartDate, raw){
   const nd = daysInMonth(y,m);
   let sum=0, counted=false;
   const today = endOfToday();
-  const todayIso = todayISO();
   for(let dnum=1; dnum<=nd; dnum++){
     const d = new Date(y,m,dnum);
     if(d>today) continue;
     if(!isHabitScheduledOn(h,d)) continue;
-    const iso = toISO(d);
-    const v = habitDayValue(h, iso, raw);
-    if(iso===todayIso && v===null) continue;
+    const v = habitDayValue(h, toISO(d), raw);
     counted = true;
     sum += (v===null?0:v);
   }
@@ -728,11 +741,17 @@ function habitMonthlyAllTimeAvg(h, startDate, endDate, raw){
   return Math.round(vals.reduce((a,b)=>a+b,0)/vals.length);
 }
 function habitDailyRangeAvg(h, rangeStart, rangeEndInclusive, raw){
-  // Для ежедневных привычек — как и раньше, среднее по дням, где есть отметка.
-  let sum=0,cnt=0; const today=endOfToday();
+  // Знаменатель — количество уже НАСТУПИВШИХ (прошедших либо сегодняшнего) запланированных
+  // дней в диапазоне, а не только тех, где уже есть запись. Если запись пока не внесена —
+  // день всё равно засчитывается, просто с результатом 0, пока пользователь его не заполнит.
+  let sum=0, cnt=0; const today=endOfToday();
   let d = new Date(rangeStart);
   while(d<=rangeEndInclusive){
-    if(d<=today){ const v=habitDayValue(h,toISO(d),raw); if(v!==null){ sum+=v; cnt++; } }
+    if(d<=today && isHabitScheduledOn(h,d)){
+      const v = habitDayValue(h,toISO(d),raw);
+      sum += (v===null?0:v);
+      cnt++;
+    }
     d = addDays(d,1);
   }
   return cnt? Math.round(sum/cnt) : null;
@@ -895,6 +914,7 @@ function habitRowToday(h, iso){
   let controls = '';
   if(h.trackingType==='percentage' && h.segments && h.segments.length){
     const step = h.stepSize||1;
+    const target = targetForDate(h, iso);
     let total=0;
     const segInputs = h.segments.map(s=>{
       const v = getEntry(h.id,iso,s) || 0; total += v;
@@ -907,15 +927,16 @@ function habitRowToday(h, iso){
         <span style="font-size:9px;color:var(--muted);text-align:center;white-space:nowrap;">${s}</span>
       </div>`;
     }).join('');
-    const pct = Math.max(0, Math.round(total/h.target*100));
+    const pct = Math.max(0, Math.round(total/target*100));
     controls = `<div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
       <div style="display:flex;gap:10px;">${segInputs}</div>
-      <span class="tag mono">Итого: ${total}/${h.target} ${h.unit} · ${pct}%</span>
+      <span class="tag mono">Итого: ${total}/${target} ${h.unit} · ${pct}%</span>
     </div>`;
   } else if(h.trackingType==='percentage'){
     const step = h.stepSize||1;
+    const target = targetForDate(h, iso);
     const v = getEntry(h.id, iso, null) || 0;
-    const pct = Math.max(0, Math.round((v/h.target)*100));
+    const pct = Math.max(0, Math.round((v/target)*100));
     controls = `<div class="pct-wrap">
       <div class="pct-input-row">
         <button class="pct-step" onclick="bumpPct('${h.id}','${iso}',null,-${step})">−</button>
@@ -938,7 +959,7 @@ function habitRowToday(h, iso){
     <div class="habit-info">
       <div class="habit-name">${h.name}</div>
       ${h.description?`<div class="habit-desc">${h.description}</div>`:''}
-      <div class="habit-meta"><span class="tag">${cadgeLabel}</span>${h.trackingType==='percentage'?`<span class="tag">Цель: ${h.target} ${h.unit}</span>`:''}${h.cadence!=='daily'?`<span class="tag" style="cursor:pointer;border-color:var(--accent);color:var(--accent);" onclick="openRescheduleModal('${h.id}')">↻ перенести день</span>`:''}</div>
+      <div class="habit-meta"><span class="tag">${cadgeLabel}</span>${h.trackingType==='percentage'?`<span class="tag">Цель: ${targetForDate(h,iso)} ${h.unit}</span>`:''}${h.cadence!=='daily'?`<span class="tag" style="cursor:pointer;border-color:var(--accent);color:var(--accent);" onclick="openRescheduleModal('${h.id}')">↻ перенести день</span>`:''}</div>
     </div>
     ${controls}
   </div>`;
@@ -1019,7 +1040,8 @@ function renderWeek(){
       const d=addDays(ws,i); const iso=toISO(d); const future = d> endOfToday();
       const scheduled = isHabitScheduledOn(h,d);
       if(!scheduled){ html+=`<td class="week-cell">–</td>`; continue; }
-      const val = habitDayValue(h,iso);
+      const rawVal = habitDayValue(h,iso,true);
+      const val = rawVal===null ? null : Math.min(100, rawVal); // капнутое значение — только для заливки и статуса "done"
       const clickable = !future;
       const isPct = h.trackingType==='percentage';
       const hasSegments = h.segments && h.segments.length;
@@ -1027,7 +1049,7 @@ function renderWeek(){
       let label = '', cellStyle = '';
       if(val!==null){
         if(isPct){
-          label = val+'%';
+          label = rawVal+'%'; // фактический процент, без ограничения в 100%
           cellStyle = 'font-size:10px;';
         } else if(val===100){
           label = '✓';
@@ -1405,8 +1427,17 @@ function addCustomSeg(){
   window.__habitDraft.segments.push(name);
   renderHabitModal();
 }
+function upsertTargetHistory(history, newTarget, effectiveDate){
+  const hist = (history && history.length) ? history.slice() : [];
+  if(!hist.length){ hist.push({date:effectiveDate, target:newTarget}); return hist; }
+  const last = hist[hist.length-1];
+  if(last.date===effectiveDate){ last.target = newTarget; }
+  else if(last.target!==newTarget){ hist.push({date:effectiveDate, target:newTarget}); }
+  return hist;
+}
 function saveHabitDraft(){
   const d = window.__habitDraft;
+  const existing = d.id ? state.habits.find(h=>h.id===d.id) : null;
   d.name = document.getElementById('f_name').value.trim();
   if(!d.name){ toast('Введите название привычки'); return; }
   d.description = document.getElementById('f_desc').value.trim();
@@ -1415,6 +1446,10 @@ function saveHabitDraft(){
     d.target = Number(document.getElementById('f_target').value)||100;
     d.unit = document.getElementById('f_unit').value.trim();
     d.stepSize = Number(document.getElementById('f_step').value)||1;
+    // Меняем цель — сохраняем прежние значения в истории, чтобы прошлые дни
+    // по-прежнему считались по цели, которая тогда действовала.
+    const effectiveDate = d.id ? todayISO() : (d.createdAt || todayISO());
+    d.targetHistory = upsertTargetHistory(existing ? existing.targetHistory : null, d.target, effectiveDate);
   }
   if(d.cadence!=='daily'){ d.freq = Number(document.getElementById('f_freq').value)||1; d.segments=[]; }
   if(d.id){
