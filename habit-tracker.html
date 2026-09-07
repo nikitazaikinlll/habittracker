@@ -801,29 +801,33 @@ function planScoreForMonth(y,m){
 }
 // Лучшая неделя/месяц за всю историю — и по всему плану, и по отдельной привычке.
 function bestWeekEver(){
-  let ws = startOfWeek(trackingStartDate()); const end = new Date();
+  let ws = startOfWeek(trackingStartDate()); const currentWeekStart = startOfWeek(new Date());
   let best=null, bestStart=null;
-  while(ws<=end){ const v=planScoreForWeek(ws); if(v!==null && (best===null||v>best)){ best=v; bestStart=new Date(ws); } ws=addDays(ws,7); }
+  while(ws<currentWeekStart){ const v=planScoreForWeek(ws); if(v!==null && (best===null||v>best)){ best=v; bestStart=new Date(ws); } ws=addDays(ws,7); }
   return {score:best, start:bestStart};
 }
 function bestMonthEver(){
-  const start = trackingStartDate(); const end = new Date();
-  let mc = new Date(start.getFullYear(), start.getMonth(), 1); const endM = new Date(end.getFullYear(), end.getMonth(), 1);
+  const start = trackingStartDate(); const now = new Date();
+  let mc = new Date(start.getFullYear(), start.getMonth(), 1); const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   let best=null, bestM=null;
-  while(mc<=endM){ const v=planScoreForMonth(mc.getFullYear(), mc.getMonth()); if(v!==null && (best===null||v>best)){ best=v; bestM=new Date(mc); } mc=new Date(mc.getFullYear(), mc.getMonth()+1, 1); }
+  while(mc<currentMonthStart){ const v=planScoreForMonth(mc.getFullYear(), mc.getMonth()); if(v!==null && (best===null||v>best)){ best=v; bestM=new Date(mc); } mc=new Date(mc.getFullYear(), mc.getMonth()+1, 1); }
   return {score:best, month:bestM};
 }
 function bestWeekForHabit(h){
-  let ws = startOfWeek(trackingStartDate()); const end = new Date();
+  // Рекорд берём только по уже ПОЛНОСТЬЮ завершённым неделям — текущая неделя,
+  // пока она не закончилась, в расчёт рекорда не попадает (иначе один ударный
+  // день в начале новой недели мог бы искусственно взлететь в "рекорд").
+  let ws = startOfWeek(trackingStartDate()); const currentWeekStart = startOfWeek(new Date());
   let best=null;
-  while(ws<=end){ const v=habitScoreForWeek(h,ws,true); if(v!==null && (best===null||v>best)) best=v; ws=addDays(ws,7); }
+  while(ws<currentWeekStart){ const v=habitScoreForWeek(h,ws,true); if(v!==null && (best===null||v>best)) best=v; ws=addDays(ws,7); }
   return best;
 }
 function bestMonthForHabit(h){
-  const start = trackingStartDate(); const end = new Date();
-  let mc = new Date(start.getFullYear(), start.getMonth(), 1); const endM = new Date(end.getFullYear(), end.getMonth(), 1);
+  // Аналогично — только полностью завершённые месяцы, текущий месяц исключён.
+  const start = trackingStartDate(); const now = new Date();
+  let mc = new Date(start.getFullYear(), start.getMonth(), 1); const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   let best=null;
-  while(mc<=endM){ const v=habitScoreForMonth(h, mc.getFullYear(), mc.getMonth(), true); if(v!==null && (best===null||v>best)) best=v; mc=new Date(mc.getFullYear(), mc.getMonth()+1, 1); }
+  while(mc<currentMonthStart){ const v=habitScoreForMonth(h, mc.getFullYear(), mc.getMonth(), true); if(v!==null && (best===null||v>best)) best=v; mc=new Date(mc.getFullYear(), mc.getMonth()+1, 1); }
   return best;
 }
 function trendArrow(delta){
@@ -1064,15 +1068,8 @@ function renderWeek(){
       }
       html += `<td class="week-cell"><span class="day-check ${cls} ${future?'future':''}" ${clickable?`onclick="quickDayToggle('${h.id}','${iso}')"`:''} style="${cellStyle}">${label}</span></td>`;
     }
-    // Итог: для weekly-привычек — доля от нормы (freq) за эту неделю, а не среднее по отмеченным дням.
-    let summaryVal;
-    if(h.cadence==='weekly'){
-      summaryVal = habitWeekCompletion(h, ws);
-    } else {
-      let sum=0,cnt=0;
-      for(let i=0;i<7;i++){ const d=addDays(ws,i); if(!isHabitScheduledOn(h,d)) continue; const val=habitDayValue(h,toISO(d)); cnt++; if(val!==null) sum+=val; }
-      summaryVal = cnt ? Math.round(sum/cnt) : null;
-    }
+    // Итог: единая функция для любого каданса — знаменатель считается по уже наступившим дням.
+    const summaryVal = habitScoreForWeek(h, ws, false);
     const habitBest = bestWeekForHabit(h);
     html += `<td class="week-cell mono"><strong>${summaryVal===null?'—':summaryVal+'%'}</strong></td><td class="week-cell mono" style="color:var(--muted);">${habitBest===null?'—':habitBest+'%'}</td></tr>`;
   });
