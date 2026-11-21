@@ -537,6 +537,7 @@ function saveState(){
   }catch(e){
     document.getElementById('saveState').textContent = 'Память сессии — сохраняйте копию вручную';
   }
+  idbSet('state', state);
   scheduleCloudPush();
 }
 function entryKey(habitId,date,segment){ return habitId+'|'+date+'|'+(segment||'_'); }
@@ -1869,6 +1870,48 @@ function performClear(mode){
 /* =========================================================
    ОБЛАЧНАЯ СИНХРОНИЗАЦИЯ (Supabase)
    ========================================================= */
+/* ---------- Резервное хранилище на устройстве (IndexedDB) ----------
+   Дублирует данные приложения и настройки синхронизации на случай, если
+   браузер очистит только localStorage. */
+const IDB_NAME = 'habitops_backup', IDB_STORE = 'kv';
+function idbOpen(){
+  return new Promise((resolve,reject)=>{
+    if(!window.indexedDB){ reject(new Error('no idb')); return; }
+    const req = indexedDB.open(IDB_NAME,1);
+    req.onupgradeneeded = ()=>{ req.result.createObjectStore(IDB_STORE); };
+    req.onsuccess = ()=>resolve(req.result);
+    req.onerror = ()=>reject(req.error);
+  });
+}
+function idbSet(key,val){
+  return idbOpen().then(db=>new Promise((res,rej)=>{
+    const tx = db.transaction(IDB_STORE,'readwrite');
+    tx.objectStore(IDB_STORE).put(val,key);
+    tx.oncomplete = ()=>{ db.close(); res(); };
+    tx.onerror = ()=>{ db.close(); rej(tx.error); };
+  })).catch(()=>{});
+}
+function idbGet(key){
+  return idbOpen().then(db=>new Promise((res,rej)=>{
+    const tx = db.transaction(IDB_STORE,'readonly');
+    const rq = tx.objectStore(IDB_STORE).get(key);
+    rq.onsuccess = ()=>{ db.close(); res(rq.result); };
+    rq.onerror = ()=>{ db.close(); rej(rq.error); };
+  })).catch(()=>undefined);
+}
+
+/* Просим браузер не удалять данные сайта автоматически */
+let storagePersisted = null;
+async function requestPersistentStorage(){
+  try{
+    if(navigator.storage && navigator.storage.persisted){
+      storagePersisted = await navigator.storage.persisted();
+      if(!storagePersisted && navigator.storage.persist) storagePersisted = await navigator.storage.persist();
+    }
+  }catch(e){}
+}
+
+/* ---------- Настройки синхронизации ---------- */
 function getSyncConfig(){
   try{
     const raw = localStorage.getItem('habitops_sync_cfg');
@@ -1876,96 +1919,376 @@ function getSyncConfig(){
   }catch(e){ return null; }
 }
 function setSyncConfig(cfg){
-  localStorage.setItem('habitops_sync_cfg', JSON.stringify(cfg));
+  try{ localStorage.setItem('habitops_sync_cfg', JSON.stringify(cfg)); }catch(e){}
+  idbSet('cfg', cfg);
 }
 function clearSyncConfig(){
-  localStorage.removeItem('habitops_sync_cfg');
+  try{ localStorage.removeItem('habitops_sync_cfg'); localStorage.removeItem('habitops_sync_base'); }catch(e){}
+  idbSet('cfg', null); idbSet('base', null);
+}
+// «Точка сверки»: время последней версии облака, с которой это устройство уже сверялось.
+// Пока её нет, устройство считается новым — и ничего в облаке само не перезаписывает.
+function getSyncBase(syncId){
+  try{
+    const b = JSON.parse(localStorage.getItem('habitops_sync_base')||'null');
+    return (b && b.syncId===syncId) ? b : null;
+  }catch(e){ return null; }
+}
+function setSyncBase(syncId, remoteTs){
+  const b = {syncId, remoteTs};
+  try{ localStorage.setItem('habitops_sync_base', JSON.stringify(b)); }catch(e){}
+  idbSet('base', b);
 }
 function setSyncStatus(text){
   const el = document.getElementById('syncState');
   if(el) el.textContent = text;
 }
+function hhmm(){ return new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}); }
 function genSyncId(){
   const bytes = new Uint8Array(16);
   crypto.getRandomValues(bytes);
   return Array.from(bytes, b=>b.toString(16).padStart(2,'0')).join('');
 }
-
-let cloudPushTimer = null;
-function scheduleCloudPush(){
-  const cfg = getSyncConfig();
-  if(!cfg) return;
-  clearTimeout(cloudPushTimer);
-  cloudPushTimer = setTimeout(pushToCloud, 1200);
-}
-
-async function pushToCloud(){
-  const cfg = getSyncConfig();
-  if(!cfg) return;
-  setSyncStatus('Синхронизация…');
+// Код подключения: один текст вместо трёх полей (Project URL + ключ + Sync ID)
+function makeConnectCode(cfg){ return 'HO1.'+btoa(JSON.stringify({u:cfg.url,k:cfg.key,s:cfg.syncId})); }
+function parseConnectCode(code){
   try{
-    const res = await fetch(cfg.url.replace(/\/$/,'')+'/rest/v1/habit_sync?on_conflict=sync_id', {
-      method:'POST',
-      headers:{
-        'apikey': cfg.key,
-        'Authorization': 'Bearer '+cfg.key,
-        'Content-Type':'application/json',
-        'Prefer':'resolution=merge-duplicates,return=minimal'
-      },
-      body: JSON.stringify([{sync_id:cfg.syncId, state:state, updated_at:new Date(state.updatedAt||Date.now()).toISOString()}])
-    });
-    setSyncStatus(res.ok ? 'В облаке · '+new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}) : 'Ошибка синхронизации ('+res.status+')');
-  }catch(e){
-    setSyncStatus('Нет сети — сохранено локально');
-  }
-}
-
-async function pullFromCloud(cfg){
-  try{
-    const res = await fetch(cfg.url.replace(/\/$/,'')+'/rest/v1/habit_sync?sync_id=eq.'+encodeURIComponent(cfg.syncId)+'&select=state,updated_at', {
-      headers:{ 'apikey':cfg.key, 'Authorization':'Bearer '+cfg.key }
-    });
-    if(!res.ok) return null;
-    const rows = await res.json();
-    return rows && rows[0] ? rows[0] : null;
+    code = (code||'').trim();
+    if(code.indexOf('HO1.')!==0) return null;
+    const o = JSON.parse(atob(code.slice(4)));
+    return (o.u && o.k && o.s) ? {url:o.u, key:o.k, syncId:o.s} : null;
   }catch(e){ return null; }
 }
 
-async function initSync(){
-  const cfg = getSyncConfig();
-  if(!cfg){ setSyncStatus('Синхронизация не настроена'); return; }
-  setSyncStatus('Проверяем облако…');
-  const remote = await pullFromCloud(cfg);
-  const remoteTs = remote ? new Date(remote.updated_at).getTime() : 0;
-  const localTs = state.updatedAt || 0;
-  if(remote && remoteTs > localTs){
-    state = remote.state;
-    state.updatedAt = remoteTs;
-    try{ localStorage.setItem('habitops_state_v1', JSON.stringify(state)); }catch(e){}
-    toast('Загружены более свежие данные из облака');
-    render();
-    setSyncStatus('Синхронизировано · '+new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}));
-  } else {
-    // Локальные данные не старше удалённых (или удалённых ещё нет вовсе) —
-    // отправляем локальную версию в облако. Работает и при самой первой
-    // настройке синхронизации, когда у локальных данных ещё нет метки времени.
-    if(!state.updatedAt) state.updatedAt = Date.now();
-    try{ localStorage.setItem('habitops_state_v1', JSON.stringify(state)); }catch(e){}
-    pushToCloud();
+/* ---------- Подсчёты и объединение данных ---------- */
+function stateStats(s){
+  s = s||{};
+  return {habits:(s.habits||[]).length, entries:Object.keys(s.entries||{}).length, tx:((s.finance||{}).transactions||[]).length};
+}
+function stateWeight(s){ const t=stateStats(s); return t.entries + t.habits*5 + t.tx; }
+function describeState(s){
+  const t = stateStats(s);
+  return 'привычек: '+t.habits+' · отметок: '+t.entries+(t.tx?' · операций: '+t.tx:'');
+}
+function mergeValues(older, newer){
+  if(Array.isArray(older) && Array.isArray(newer)){
+    const out = [], idx = new Map();
+    const put = x=>{
+      if(x && typeof x==='object' && x.id!==undefined){
+        if(idx.has(x.id)) out[idx.get(x.id)] = x; else { idx.set(x.id, out.length); out.push(x); }
+      } else if(!out.some(y=>JSON.stringify(y)===JSON.stringify(x))) out.push(x);
+    };
+    older.forEach(put); newer.forEach(put);   // при совпадении id побеждает более свежая версия
+    return out;
+  }
+  if(older && newer && typeof older==='object' && typeof newer==='object' && !Array.isArray(older) && !Array.isArray(newer)){
+    const out = Object.assign({}, older);
+    Object.keys(newer).forEach(k=>{ out[k] = (k in older) ? mergeValues(older[k], newer[k]) : newer[k]; });
+    return out;
+  }
+  return newer===undefined ? older : newer;
+}
+// Объединение двух наборов данных: ничего не пропадает, при конфликте побеждает более свежее
+function mergeStates(a, b){
+  const aNewer = (a.updatedAt||0) >= (b.updatedAt||0);
+  const newer = aNewer ? a : b, older = aNewer ? b : a;
+  const out = mergeValues(older, newer);
+  ['weeklyAssignments','monthlyAssignments'].forEach(k=>{
+    out[k] = Object.assign({}, older[k]||{}, newer[k]||{});   // дни выполнения — по ключам, без склейки
+  });
+  out.updatedAt = Date.now();
+  return out;
+}
+function applyStateLocally(newState, ts){
+  state = newState;
+  state.updatedAt = ts;
+  migrateTargetHistory();
+  try{ localStorage.setItem('habitops_state_v1', JSON.stringify(state)); }catch(e){}
+  idbSet('state', state);
+}
+function backupLocalSnapshot(){
+  try{
+    const snap = {savedAt:Date.now(), state:state};
+    localStorage.setItem('habitops_state_backup_local', JSON.stringify(snap));
+    idbSet('backup_local', snap);
+  }catch(e){}
+}
+function renderIfIdle(){
+  const o = document.getElementById('overlay');
+  if(!(o && o.classList.contains('show'))) render();
+}
+
+/* ---------- Обмен с облаком ---------- */
+function sbUrl(cfg, query){ return cfg.url.replace(/\/$/,'')+'/rest/v1/habit_sync'+query; }
+function sbHeaders(cfg, extra){ return Object.assign({'apikey':cfg.key, 'Authorization':'Bearer '+cfg.key}, extra||{}); }
+function sbUpsert(cfg, rows){
+  return fetch(sbUrl(cfg,'?on_conflict=sync_id'), {
+    method:'POST',
+    headers: sbHeaders(cfg, {'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'}),
+    body: JSON.stringify(rows)
+  });
+}
+// Возвращает {ok:false} при ошибке/паузе проекта и {ok:true,row:null|{...}} при успешном ответе.
+// Ошибка НЕ считается «в облаке пусто» — иначе облако могло бы быть перезаписано.
+async function fetchRemote(cfg){
+  try{
+    const res = await fetch(sbUrl(cfg,'?sync_id=eq.'+encodeURIComponent(cfg.syncId)+'&select=state,updated_at'), {headers:sbHeaders(cfg)});
+    if(!res.ok) return {ok:false, status:res.status};
+    const rows = await res.json();
+    return {ok:true, row: rows && rows[0] ? rows[0] : null};
+  }catch(e){ return {ok:false}; }
+}
+// Копия облачных данных в отдельной строке той же таблицы (слоты bak0…bak6 по дням недели и bak-manual)
+async function backupRemoteRow(cfg, row, slot){
+  if(!row) return true;
+  try{
+    const res = await sbUpsert(cfg, [{sync_id:cfg.syncId+'#'+slot, state:row.state, updated_at:row.updated_at}]);
+    return res.ok;
+  }catch(e){ return false; }
+}
+async function pushToCloud(cfg, prevRow){
+  try{
+    // Раз в день, перед первой записью, сохраняем копию того, что лежало в облаке ДО перезаписи
+    let lastDay = null;
+    try{ lastDay = localStorage.getItem('habitops_last_backup_day'); }catch(e){}
+    if(prevRow && lastDay!==todayISO()){
+      const ok = await backupRemoteRow(cfg, prevRow, 'bak'+new Date().getDay());
+      if(ok){ try{ localStorage.setItem('habitops_last_backup_day', todayISO()); }catch(e){} }
+    }
+    const ts = state.updatedAt || Date.now();
+    const res = await sbUpsert(cfg, [{sync_id:cfg.syncId, state:state, updated_at:new Date(ts).toISOString()}]);
+    if(res.ok){ setSyncBase(cfg.syncId, ts); setSyncStatus('В облаке · '+hhmm()); }
+    else setSyncStatus('Ошибка синхронизации ('+res.status+')');
+  }catch(e){
+    setSyncStatus('Нет сети — данные сохранены на устройстве');
   }
 }
 
+/* ---------- Главная функция синхронизации ---------- */
+let cloudPushTimer = null, syncBusy = false, syncQueued = false, syncChoiceOpen = false, lastSyncAt = 0, skipShrinkGuardOnce = false;
+function scheduleCloudPush(){
+  if(!getSyncConfig()) return;
+  clearTimeout(cloudPushTimer);
+  cloudPushTimer = setTimeout(()=>syncNow(), 1200);
+}
+function initSync(){ return syncNow({force:true}); }
+
+async function syncNow(opts){
+  opts = opts||{};
+  const cfg = getSyncConfig();
+  if(!cfg){ setSyncStatus('Синхронизация не настроена'); return; }
+  if(syncChoiceOpen) return;                          // ждём решения пользователя
+  if(syncBusy){ syncQueued = true; return; }
+  const overlay = document.getElementById('overlay');
+  if(!opts.force && overlay && overlay.classList.contains('show')){ setTimeout(()=>syncNow(), 4000); return; }
+  syncBusy = true; lastSyncAt = Date.now();
+  try{
+    setSyncStatus('Синхронизация…');
+    const r = await fetchRemote(cfg);
+    if(!r.ok){
+      setSyncStatus(r.status ? 'Облако недоступно ('+r.status+') — данные сохранены на устройстве' : 'Нет сети — данные сохранены на устройстве');
+      return;
+    }
+    const row = r.row;
+    const remoteTs = row ? Date.parse(row.updated_at) : 0;
+    const base = getSyncBase(cfg.syncId);
+    const localTs = state.updatedAt || 0;
+
+    if(!row){ await pushToCloud(cfg, null); return; }   // облако пустое — первая загрузка данных
+
+    if(!base){
+      // Это устройство ещё ни разу не сверялось с облаком.
+      if(!localTs){
+        // На устройстве ничего ещё не вводили (только демо-данные) — спокойно берём облако
+        backupLocalSnapshot();
+        applyStateLocally(row.state, remoteTs); setSyncBase(cfg.syncId, remoteTs);
+        renderIfIdle(); setSyncStatus('Синхронизировано · '+hhmm()); toast('Данные загружены из облака');
+      } else {
+        syncChoiceOpen = true; openSyncChoice('first', row);   // решает пользователь, ничего не затираем
+      }
+      return;
+    }
+
+    if(remoteTs > base.remoteTs){
+      // В облаке появились изменения с другого устройства
+      backupLocalSnapshot();
+      if(localTs > base.remoteTs){
+        applyStateLocally(mergeStates(state, row.state), Date.now());
+        renderIfIdle(); toast('Данные двух устройств объединены');
+        await pushToCloud(cfg, row);
+      } else {
+        applyStateLocally(row.state, remoteTs); setSyncBase(cfg.syncId, remoteTs);
+        renderIfIdle(); setSyncStatus('Синхронизировано · '+hhmm()); toast('Загружены свежие данные из облака');
+      }
+      return;
+    }
+
+    if(localTs > base.remoteTs){
+      // Есть только локальные изменения. Защита: данных вдруг стало намного меньше, чем в облаке
+      const guard = !skipShrinkGuardOnce && stateWeight(row.state)>=20 && stateWeight(state) < stateWeight(row.state)*0.5;
+      skipShrinkGuardOnce = false;
+      if(guard){ syncChoiceOpen = true; openSyncChoice('shrink', row); return; }
+      await pushToCloud(cfg, row);
+      return;
+    }
+    setSyncStatus('Синхронизировано · '+hhmm());
+  } finally {
+    syncBusy = false;
+    if(syncQueued){ syncQueued = false; setTimeout(()=>syncNow(), 500); }
+  }
+}
+document.addEventListener('visibilitychange', ()=>{
+  if(!document.hidden && getSyncConfig() && Date.now()-lastSyncAt > 15000) syncNow();
+});
+window.addEventListener('online', ()=>{ if(getSyncConfig()) syncNow(); });
+
+/* ---------- Окно выбора: что делать, если данные расходятся ---------- */
+function openSyncChoice(kind, row){
+  window.__syncChoiceRow = row;
+  const cloudW = stateWeight(row.state), localW = stateWeight(state);
+  const when = new Date(row.updated_at).toLocaleString('ru-RU',{day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'});
+  setSyncStatus('Нужно выбрать, какие данные оставить');
+  const btn = (fn,label,cls,rec)=>`<button class="btn ${cls||''}" style="width:100%;" onclick="${fn}">${label}${rec?' (рекомендуется)':''}</button>`;
+  let title, lead, buttons;
+  if(kind==='first'){
+    const rec = localW <= cloudW ? 'cloud' : 'merge';
+    title = 'В облаке уже есть ваши данные';
+    lead = 'Это устройство ещё не сверялось с облаком. Чтобы ничего не потерять, приложение ничего не перезаписывает само — выберите, как поступить.';
+    buttons = btn('syncUseCloud()','Загрузить данные из облака', rec==='cloud'?'btn-primary':'', rec==='cloud')
+            + btn('syncMergeBoth()','Объединить облако и это устройство', rec==='merge'?'btn-primary':'', rec==='merge')
+            + btn('syncUseLocal()','Заменить облако данными этого устройства','btn-danger');
+  } else {
+    title = 'Данных стало заметно меньше';
+    lead = 'В облаке записей намного больше, чем на этом устройстве. Так бывает, если данные очистили или браузер удалил их сам. Если вы очистили их специально — выберите второй вариант.';
+    buttons = btn('syncUseCloud()','Вернуть данные из облака','btn-primary',true)
+            + btn('syncKeepShrunk()','Так и должно быть — заменить облако','btn-danger');
+  }
+  const box = document.getElementById('modalBox');
+  box.innerHTML = `<div class="modal-head"><h3>${title}</h3><button class="close-x" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <p style="font-size:13px;margin-top:0;">${lead}</p>
+      <div style="display:grid;gap:8px;grid-template-columns:1fr 1fr;margin:12px 0;font-size:12.5px;">
+        <div class="card" style="padding:12px;"><strong>В облаке</strong><br>${describeState(row.state)}<br><span style="color:var(--muted);">обновлено ${when}</span></div>
+        <div class="card" style="padding:12px;"><strong>На этом устройстве</strong><br>${describeState(state)}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">${buttons}</div>
+      <p style="font-size:11.5px;color:var(--muted);margin:12px 0 0;">Перед любым вариантом прежние данные сохраняются в «Резервных копиях» (окно «☁ Синхронизация»). Если закроете это окно — синхронизация подождёт вашего решения.</p>
+    </div>`;
+  openModal();
+}
+function syncUseCloud(){
+  const row = window.__syncChoiceRow, cfg = getSyncConfig();
+  if(!row || !cfg) return;
+  backupLocalSnapshot();
+  const ts = Date.parse(row.updated_at);
+  applyStateLocally(JSON.parse(JSON.stringify(row.state)), ts);
+  setSyncBase(cfg.syncId, ts);
+  syncChoiceOpen = false; closeModal(); render();
+  setSyncStatus('Синхронизировано · '+hhmm()); toast('Данные загружены из облака');
+}
+async function syncMergeBoth(){
+  const row = window.__syncChoiceRow, cfg = getSyncConfig();
+  if(!row || !cfg) return;
+  backupLocalSnapshot();
+  await backupRemoteRow(cfg, row, 'bak-manual');
+  applyStateLocally(mergeStates(state, row.state), Date.now());
+  syncChoiceOpen = false; closeModal(); render();
+  await pushToCloud(cfg, null);
+  toast('Данные объединены');
+}
+async function syncUseLocal(){
+  const row = window.__syncChoiceRow, cfg = getSyncConfig();
+  if(!row || !cfg) return;
+  if(!confirm('Данные в облаке будут заменены данными этого устройства. Копия облачных данных сохранится в «Резервных копиях». Продолжить?')) return;
+  await backupRemoteRow(cfg, row, 'bak-manual');
+  state.updatedAt = Date.now();
+  try{ localStorage.setItem('habitops_state_v1', JSON.stringify(state)); }catch(e){}
+  syncChoiceOpen = false; closeModal();
+  await pushToCloud(cfg, null);
+  toast('Облако обновлено данными этого устройства');
+}
+async function syncKeepShrunk(){
+  const row = window.__syncChoiceRow, cfg = getSyncConfig();
+  if(!row || !cfg) return;
+  if(!confirm('Данные в облаке будут заменены текущими (их стало меньше). Копия облачных данных сохранится в «Резервных копиях». Продолжить?')) return;
+  await backupRemoteRow(cfg, row, 'bak-manual');
+  syncChoiceOpen = false; closeModal();
+  await pushToCloud(cfg, null);
+}
+function resumeSyncChoice(){ closeModal(); syncChoiceOpen = false; syncNow({force:true}); }
+
+/* ---------- Резервные копии ---------- */
+async function openBackupsModal(){
+  const cfg = getSyncConfig();
+  const box = document.getElementById('modalBox');
+  box.innerHTML = `<div class="modal-head"><h3>Резервные копии</h3><button class="close-x" onclick="closeModal()">✕</button></div><div class="modal-body"><p style="color:var(--muted);">Загружаем список…</p></div>`;
+  openModal();
+  let rows = [];
+  if(cfg){
+    try{
+      const res = await fetch(sbUrl(cfg,'?sync_id=like.'+encodeURIComponent(cfg.syncId+'#bak')+'*&select=sync_id,state,updated_at'), {headers:sbHeaders(cfg)});
+      if(res.ok) rows = await res.json();
+    }catch(e){}
+  }
+  rows.sort((a,b)=>Date.parse(b.updated_at)-Date.parse(a.updated_at));
+  window.__backupRows = rows;
+  let local = null;
+  try{ local = JSON.parse(localStorage.getItem('habitops_state_backup_local')||'null'); }catch(e){}
+  const fmt = ts=>new Date(ts).toLocaleString('ru-RU',{day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'});
+  const item = (label,when,s,onclick)=>`<div class="card" style="padding:12px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+      <div style="font-size:12.5px;"><strong>${label}</strong><br><span style="color:var(--muted);">${when}</span><br>${describeState(s)}</div>
+      <button class="btn btn-sm" onclick="${onclick}">Восстановить</button></div>`;
+  let html = '';
+  rows.forEach((r,i)=>{
+    const slot = r.sync_id.split('#')[1];
+    html += item(slot==='bak-manual' ? 'Облако перед ручной заменой' : 'Автокопия облака', 'данные от '+fmt(r.updated_at), r.state, `restoreBackup('cloud',${i})`);
+  });
+  if(local && local.state) html += item('На этом устройстве до последней загрузки', 'сохранено '+fmt(local.savedAt), local.state, `restoreBackup('local',0)`);
+  if(!html) html = '<p style="color:var(--muted);font-size:13px;">Копий пока нет. Автокопия облака создаётся раз в день при первой синхронизации; хранятся данные за последние 7 дней.</p>';
+  box.innerHTML = `<div class="modal-head"><h3>Резервные копии</h3><button class="close-x" onclick="closeModal()">✕</button></div>
+    <div class="modal-body"><p style="font-size:12.5px;color:var(--muted);margin-top:0;">Выберите копию, чтобы вернуть данные на этом устройстве (и в облаке). Текущие данные при этом тоже сохранятся как копия на устройстве.</p>${html}</div>
+    <div class="modal-foot"><span></span><button class="btn" onclick="closeModal()">Закрыть</button></div>`;
+}
+function restoreBackup(kind, i){
+  let snap = null;
+  try{
+    snap = kind==='cloud' ? window.__backupRows[i].state : JSON.parse(localStorage.getItem('habitops_state_backup_local')).state;
+  }catch(e){}
+  if(!snap){ toast('Не удалось прочитать копию'); return; }
+  if(!confirm('Заменить текущие данные выбранной копией?')) return;
+  const copy = JSON.parse(JSON.stringify(snap));
+  backupLocalSnapshot();
+  state = copy; migrateTargetHistory();
+  skipShrinkGuardOnce = true;
+  saveState(); closeModal(); render();
+  toast('Данные восстановлены из копии');
+}
+
+/* ---------- Окно настроек синхронизации ---------- */
 document.getElementById('btnSync').addEventListener('click', openSyncModal);
 function openSyncModal(){
+  const connected = !!getSyncConfig();
   const cfg = getSyncConfig() || {url:'', key:'', syncId: genSyncId()};
+  const protect = storagePersisted===true
+    ? '✅ Браузер обещал не удалять данные приложения автоматически.'
+    : '⚠️ Браузер может удалить данные приложения, если долго не заходить. Установите приложение на главный экран — так они защищены лучше. История в облаке и резервные копии сохраняются в любом случае.';
+  const pending = syncChoiceOpen
+    ? `<div class="banner" style="margin-bottom:12px;"><div><strong>Синхронизация ждёт вашего решения</strong><p>Нужно выбрать, какие данные оставить.</p></div><button class="btn btn-primary btn-sm" onclick="resumeSyncChoice()">Решить сейчас</button></div>` : '';
   const box = document.getElementById('modalBox');
   box.innerHTML = `<div class="modal-head"><h3>Синхронизация между устройствами</h3><button class="close-x" onclick="closeModal()">✕</button></div>
     <div class="modal-body">
+      ${pending}
       <p style="font-size:12.5px;color:var(--muted);margin-top:0;">
         Данные хранятся в вашей бесплатной базе на <a href="https://supabase.com" target="_blank" rel="noopener">Supabase</a>.
         Настройте один раз на компьютере, затем откройте эту же страницу на телефоне и введите те же данные — история подтянется автоматически.
       </p>
-      <label style="font-size:12px;font-weight:600;display:block;margin:10px 0 4px;">Project URL</label>
+      <label style="font-size:12px;font-weight:600;display:block;margin:10px 0 4px;">Код подключения <span style="font-weight:400;color:var(--muted);">(вместо ввода трёх полей ниже)</span></label>
+      <div style="display:flex;gap:6px;">
+        <input id="syncCode" type="text" placeholder="Вставьте код с другого устройства" style="flex:1;padding:8px 10px;border:1px solid var(--border);border-radius:7px;font-size:13px;">
+        <button class="btn btn-sm" onclick="applyConnectCode()">Применить</button>
+      </div>
+      ${connected ? '<button class="btn btn-sm" style="margin-top:6px;" onclick="copyConnectCode()">Скопировать мой код подключения</button>' : ''}
+      <label style="font-size:12px;font-weight:600;display:block;margin:12px 0 4px;">Project URL</label>
       <input id="syncUrl" type="text" placeholder="https://xxxxx.supabase.co" value="${cfg.url||''}" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:7px;font-size:13px;">
       <label style="font-size:12px;font-weight:600;display:block;margin:10px 0 4px;">Anon public key</label>
       <input id="syncKey" type="text" placeholder="eyJhbGciOi..." value="${cfg.key||''}" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:7px;font-size:13px;">
@@ -1974,14 +2297,33 @@ function openSyncModal(){
         <input id="syncId" type="text" value="${cfg.syncId||''}" style="flex:1;padding:8px 10px;border:1px solid var(--border);border-radius:7px;font-size:13px;">
         <button class="btn btn-sm" onclick="document.getElementById('syncId').value=genSyncId()">Сгенерировать</button>
       </div>
-      <p style="font-size:11.5px;color:var(--muted);margin:8px 0 0;">Этот же Sync ID нужно ввести на телефоне — он как пароль к вашим данным. Никому не показывайте.</p>
+      <p style="font-size:11.5px;color:var(--muted);margin:8px 0 0;">Этот же Sync ID нужно ввести на телефоне — он как пароль к вашим данным. Никому не показывайте. Сохраните код подключения в заметках: с ним настройка на новом устройстве занимает секунды.</p>
+      <p style="font-size:11.5px;margin:10px 0 0;">${protect}</p>
+      ${connected ? '<button class="btn btn-sm" style="margin-top:10px;" onclick="openBackupsModal()">Резервные копии</button>' : ''}
     </div>
     <div class="modal-foot">
-      ${cfg.url ? '<button class="btn btn-danger btn-sm" onclick="disconnectSync()">Отключить</button>' : '<span></span>'}
+      ${connected ? '<button class="btn btn-danger btn-sm" onclick="disconnectSync()">Отключить</button>' : '<span></span>'}
       <button class="btn" onclick="closeModal()">Отмена</button>
       <button class="btn btn-primary" onclick="saveSyncConfig()">Сохранить и синхронизировать</button>
     </div>`;
   openModal();
+}
+function applyConnectCode(){
+  const c = parseConnectCode(document.getElementById('syncCode').value);
+  if(!c){ toast('Код не распознан — скопируйте его целиком'); return; }
+  document.getElementById('syncUrl').value = c.url;
+  document.getElementById('syncKey').value = c.key;
+  document.getElementById('syncId').value = c.syncId;
+  toast('Код применён — нажмите «Сохранить и синхронизировать»');
+}
+function copyConnectCode(){
+  const cfg = getSyncConfig();
+  if(!cfg) return;
+  const code = makeConnectCode(cfg);
+  const fallback = ()=>{ window.prompt('Скопируйте код подключения:', code); };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(code).then(()=>toast('Код подключения скопирован')).catch(fallback);
+  } else fallback();
 }
 function saveSyncConfig(){
   const url = document.getElementById('syncUrl').value.trim();
@@ -1991,11 +2333,13 @@ function saveSyncConfig(){
   setSyncConfig({url, key, syncId});
   closeModal();
   toast('Настройки сохранены, синхронизируем…');
+  syncChoiceOpen = false;
   initSync();
 }
 function disconnectSync(){
-  if(!confirm('Отключить синхронизацию на этом устройстве? Локальные данные останутся, облачные — нет.')) return;
+  if(!confirm('Отключить синхронизацию на этом устройстве? Локальные данные останутся, облачные — тоже.')) return;
   clearSyncConfig();
+  syncChoiceOpen = false;
   setSyncStatus('Синхронизация не настроена');
   closeModal();
   toast('Синхронизация отключена');
@@ -2011,9 +2355,30 @@ if('serviceWorker' in navigator){
 /* =========================================================
    СТАРТ
    ========================================================= */
-loadState();
-render();
-initSync();
+(async function bootstrap(){
+  let hadLocalState = false;
+  try{ hadLocalState = !!localStorage.getItem('habitops_state_v1'); }catch(e){}
+  loadState();
+  requestPersistentStorage();
+  // Если браузер очистил localStorage, но резервная копия в IndexedDB уцелела — восстанавливаем из неё
+  if(!hadLocalState){
+    const saved = await idbGet('state');
+    if(saved && saved.updatedAt){
+      applyStateLocally(saved, saved.updatedAt);
+      toast('Данные восстановлены из резервной копии браузера');
+    }
+  }
+  if(!getSyncConfig()){
+    const c = await idbGet('cfg');
+    if(c && c.url){ try{ localStorage.setItem('habitops_sync_cfg', JSON.stringify(c)); }catch(e){} }
+  }
+  if(!getSyncBase((getSyncConfig()||{}).syncId)){
+    const b = await idbGet('base');
+    if(b){ try{ localStorage.setItem('habitops_sync_base', JSON.stringify(b)); }catch(e){} }
+  }
+  render();
+  initSync();
+})();
 </script>
 </body>
 </html>
